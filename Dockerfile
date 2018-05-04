@@ -7,9 +7,9 @@
 FROM node
 
 # File Author / Maintainer
-LABEL "com.example.vendor"="LNU"
-LABEL version="1.0"
-LABEL maintainer="thajo@lnu.se"
+LABEL "com.example.vendor"="zameschua"
+LABEL version="0.0.1"
+LABEL maintainer="zames.chua@gmail.com"
 
 
 # Since it is just dev we create this with std user
@@ -28,8 +28,8 @@ RUN npm install nodemon -g --quiet
 # Copy the app
 COPY . .
 
-# expose port 8000
-EXPOSE 8000
+# expose port 8080
+EXPOSE 8080
 
 # Start the application when starting the container
 CMD nodemon -L --watch . app.js

@@ -1,7 +1,7 @@
 {
-  "name": "dev-node",
-  "version": "1.0.0",
-  "description": "This is a test",
+  "name": "airlog",
+  "version": "0.0.1",
+  "description": "Hassle-free pushing of application logs to your email or phone",
   "main": "app.js",
   "scripts": {
     "start": ""
@@ -9,7 +9,7 @@
   "dependencies": {
     "express": "^4.16.2"
   },
-  "author": "thajo",
+  "author": "zameschua",
   "license": "ISC",
   "devDependencies": {}
 }
