@@ -26,10 +26,9 @@
         <!-- Form Controls: Using Icons - Seamless -->
         <div class="row mb-2 justify-content-center">
           <div class="col-6">
-            <h6 class="text-muted">Sign-in</h6>
-
-            <div class="card">
+             <div class="card">
               <div class="card-body">
+                <h3 class="text-center mt-3 mb-5 ml-auto">Welcome back!</h3>
                 <form action="/signin" method="post">
                   <div class="row">
                     <div class="form-group col-md-12">
@@ -55,53 +54,20 @@
                       </div>
                     </div>
                   </div>
-                  <div class="row justify-content-center">
-                    <div class="col-md-2">
-                      <input type="submit" value="Sign in" class="btn btn-outline-primary btn-pill" />
-                    </div>
-                  </div>
+                  <input type="submit" value="Sign in" class="btn btn-block btn-primary btn-pill btn-block" />
                 </form>
               </div>
             </div>
+
+            <p class="text-center mt-5">Don't have an account? <a href="/register"><b>Sign up</b></a></p>
             
           </div>
         </div>
       </div>
     </div>
-
-    <footer class="main-footer py-5">
-      <p class="text-muted text-center small p-0 mb-4">&copy; Copyright 2018 — DesignRevision</p>
-      <div class="social d-table mx-auto">
-        <a class="twitter mx-3 h4 d-inline-block text-secondary" href="https://twitter.com/DesignRevision" target="_blank">
-          <i class="fa fa-twitter"></i>
-          <span class="sr-only">View our Twitter Profile</span>
-        </a>
-        <a class="facebook mx-3 h4 d-inline-block text-secondary" href="https://www.facebook.com/designrevision" target="_blank">
-          <i class="fa fa-facebook"></i>
-          <span class="sr-only">View our Facebook Profile
-            <span>
-        </a>
-        <a class="github mx-3 h4 d-inline-block text-secondary" href="https://github.com/designrevision" target="_blank">
-          <i class="fa fa-github"></i>
-          <span class="sr-only">View our GitHub Profile</span>
-        </a>
-      </div>
-    </footer>
   </div>
 
   <!-- JavaScript -->
-  <div id="fb-root"></div>
-  <script>
-    (function (d, s, id) {
-      var js, fjs = d.getElementsByTagName(s)[0];
-      if (d.getElementById(id)) return;
-      js = d.createElement(s);
-      js.id = id;
-      js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10&appId=1662270373824826";
-      fjs.parentNode.insertBefore(js, fjs);
-    }(document, 'script', 'facebook-jssdk'));
-
-  </script>
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
   <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
