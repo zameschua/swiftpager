@@ -19,46 +19,43 @@
     <div class="page-loader"></div>
   </div>
 
-  <!-- Page Content -->
-  <div class="page-content container">
-    <!-- Content -->
-    <div class="content clearfix">
-      <h1>THE DASHBOARD</h1>
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">Navbar</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor03" aria-controls="navbarColor03" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  
+    <div id="navbarColor03">
+        <a href="/signout">
+          <button class="btn btn-light my-2 my-sm-0" type="buton">Sign out →</button>
+        </a>
     </div>
+  </nav>
 
-    <footer class="main-footer py-5">
-      <p class="text-muted text-center small p-0 mb-4">&copy; Copyright 2018 — DesignRevision</p>
-      <div class="social d-table mx-auto">
-        <a class="twitter mx-3 h4 d-inline-block text-secondary" href="https://twitter.com/DesignRevision" target="_blank">
-          <i class="fa fa-twitter"></i>
-          <span class="sr-only">View our Twitter Profile</span>
-        </a>
-        <a class="facebook mx-3 h4 d-inline-block text-secondary" href="https://www.facebook.com/designrevision" target="_blank">
-          <i class="fa fa-facebook"></i>
-          <span class="sr-only">View our Facebook Profile
-            <span>
-        </a>
-        <a class="github mx-3 h4 d-inline-block text-secondary" href="https://github.com/designrevision" target="_blank">
-          <i class="fa fa-github"></i>
-          <span class="sr-only">View our GitHub Profile</span>
-        </a>
+  <div class="container-fluid">
+    <div class="row">
+
+      
+      <div class="col-sm-3 col-md-2 navbar">
+        <ul class="nav">
+          <li class="nav-item active"><a href="#" class="nav-link">Reserved for later<span class="sr-only">(current)</span></a></li>
+          <li class="nav-item"><a href="#" class="nav-link">Reserved for later</a></li>
+        </ul>
       </div>
-    </footer>
+
+      <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <div class="container mt-5">
+          <h1 class="page-header">Dashboard</h1>
+          <div class="row">
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- JavaScript -->
-  <div id="fb-root"></div>
-  <script>
-    (function (d, s, id) {
-      var js, fjs = d.getElementsByTagName(s)[0];
-      if (d.getElementById(id)) return;
-      js = d.createElement(s);
-      js.id = id;
-      js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10&appId=1662270373824826";
-      fjs.parentNode.insertBefore(js, fjs);
-    }(document, 'script', 'facebook-jssdk'));
 
-  </script>
+  <!-- JavaScript -->
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
   <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="

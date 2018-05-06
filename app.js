@@ -34,6 +34,15 @@ passport.use(new LocalStrategy({
   }
 ));
 
+// Helper function to check if user is signed in
+function signedIn(req, res, next) {
+  if (req.user) {
+      next();
+  } else {
+      res.redirect('/signin');
+  }
+}
+
 passport.serializeUser(function(user, cb) {
   cb(null, user.id);
 });
@@ -88,23 +97,24 @@ app.post('/register', function(req, res) {
 })
 
 app.get('/signin', function(req, res) {
-    res.render('signin.html') 
-  } 
-);
+  res.render('signin.html') 
+});
 
 app.post('/signin',
-    passport.authenticate('local', { failureRedirect: '/signin' }),
-    function(req, res) {
-      // If this function gets called, authentication was successful.
-      // `req.user` contains the authenticated user.
-      res.redirect('/dashboard/' + req.user.email);
+  passport.authenticate('local', { failureRedirect: '/signin' }),
+  function(req, res) {
+    // If this function gets called, authentication was successful.
+    // `req.user` contains the authenticated user.
+    res.redirect('/dashboard');
 });
 
-app.get('/dashboard', function(req, res) {
-  res.render('dashboard.html') 
+// User only can access this endpoint if they're signed in
+app.get('/dashboard',signedIn,  function(req, res, next) {
+  console.log(req.user);
+  res.render('dashboard.html');
 });
 
-app.get('/logout', function(req, res){
+app.get('/signout', function(req, res){
   req.logout();
   res.redirect('/');
 });
