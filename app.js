@@ -1,10 +1,15 @@
+require('dotenv').config();
 const express = require('express');
+const subdomain = require('express-subdomain');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-const path = require('path')
+const TelegramBot = require('node-telegram-bot-api');
+const token = process.env.TELEGRAM_BOT_TOKEN;
+const bot = new TelegramBot(token, {polling: true});
+const path = require('path');
 const User = require('./models/User');
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 80;
 
 //connect to MongoDB
 const mongoose = require('mongoose');
@@ -22,7 +27,6 @@ passport.use(new LocalStrategy({
   passwordField: 'password'
   },
   function(email, password, done) {
-    console.log("in passport.use");
     User.findOne({ email: email }, function (err, user) {
       /*
       if (err) { return done(err); }
@@ -67,16 +71,31 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
-// Routes
-app.get('/', function (req, res) {
-  res.render('index.html');
-})
+// dashboard.domain.com -------------------------------------------------
+var dashboardRouter = express.Router();
 
-app.get('/register', function (req, res) {
+dashboardRouter.get('/signin', function(req, res) {
+  res.render('signin.html');
+});
+
+dashboardRouter.get('/register', function (req, res) {
   res.render('register.html');
 })
 
-app.post('/register', function(req, res) {
+dashboardRouter.post('/auth/signin',
+  passport.authenticate('local', { failureRedirect: '/signin' }),
+  function(req, res) {
+    // If this function gets called, authentication was successful.
+    // `req.user` contains the authenticated user.
+    res.redirect('/');
+});
+
+dashboardRouter.get('/auth/signout', function(req, res){
+  req.logout();
+  res.redirect('http://lvh.me');
+});
+
+dashboardRouter.post('/auth/register', function(req, res) {
   if (req.body.email &&
     req.body.password &&
     req.body.password === req.body.passwordConfirm) {
@@ -90,34 +109,79 @@ app.post('/register', function(req, res) {
         console.log(err);
         return err;
       } else {
-        return res.redirect('/dashboard');
+        return res.redirect('/');
       }
     });
   }
 })
 
-app.get('/signin', function(req, res) {
-  res.render('signin.html') 
-});
-
-app.post('/signin',
-  passport.authenticate('local', { failureRedirect: '/signin' }),
-  function(req, res) {
-    // If this function gets called, authentication was successful.
-    // `req.user` contains the authenticated user.
-    res.redirect('/dashboard');
-});
-
 // User only can access this endpoint if they're signed in
-app.get('/dashboard',signedIn,  function(req, res, next) {
+dashboardRouter.get('/', signedIn,  function(req, res, next) {
   console.log(req.user);
   res.render('dashboard.html');
 });
 
-app.get('/signout', function(req, res){
-  req.logout();
-  res.redirect('/');
+app.use(subdomain('dashboard', dashboardRouter));
+// -------------------------------------------------------------
+
+// api.domain.com-------------------------------------------------------------
+const apiRouter = express.Router();
+
+// Need to handle linking of account to telegram
+apiRouter.get('/v1/telegramLog', function(req, res) {
+  // Find user via api key
+  User.findById(req.user._id, function(err, user) {
+    if (err) {
+      console.log(err);
+    } else {
+      // Send message via telegram
+      bot.sendMessage(user.telegram.id, req.body.message);
+    }
+  })
+
 });
+
+apiRouter.post('/v1/emailLog', function(req, res) {
+  if (req.body.message) {
+
+  }
+})
+
+
+app.use(subdomain('api', apiRouter));
+// -------------------------------------------------------------
+
+
+app.get('/', function (req, res) {
+  res.render('index.html');
+})
 
 app.listen(PORT)
 console.log('Running on http://localhost:' + PORT);
+
+
+
+// TELEGRAM BOT ------------------------------------------
+bot.onText(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/, (msg) => {
+  const userId = msg.from.id;
+  const username = msg.from.username;
+  User.findOneAndUpdate({ email : msg.text }, {
+    'telegram.id' : userId,
+    'telegram.username' : username,
+  }, function(err, user) {
+    if (err) {
+      bot.sendMessage(userId, 'Please enter the email that you signed up with on airlog!');
+    }
+  });
+  bot.sendMessage(userId, 'Account linked!');
+});
+
+bot.on('message', (msg) => {
+  const userId = msg.from.id;
+  User.findOne({ 'telegram.id' : userId }, (err, user) => {
+    if (err) {
+      bot.sendMessage(userId, "Link your account by entering the email that you signed up with on airlog!");
+    }
+    bot.sendMessage(userId, "Sorry I don't understand your commmand! Visit airlog.io for help.");
+  });
+});

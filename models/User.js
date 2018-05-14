@@ -11,7 +11,11 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-  }
+  },
+  telegram: {
+    username: String,
+    id: Number,
+  },
 });
 
 UserSchema.methods.verifyPassword = function(password, callback) {
