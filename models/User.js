@@ -16,6 +16,11 @@ const UserSchema = new mongoose.Schema({
     username: String,
     id: Number,
   },
+  apiKey: {
+    type: String,
+    unique: true,
+    required: true,
+  }
 });
 
 UserSchema.methods.verifyPassword = function(password, callback) {

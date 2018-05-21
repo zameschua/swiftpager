@@ -49,11 +49,19 @@
           <h1 class="page-header">Dashboard</h1>
           <div class="row">
             <div class="col-md-6">
+              <p><b>Api Key</b></p>
+            </div>
+            <div class="col-md-6">
+              <p><%= apiKey %></p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
               <p><b>Email</b></p>
             </div>
             <div class="col-md-6">
               <form action="#" method="post">
-                <input type="text" value="test@email.com" class="form-control" />
+                <input type="text" value=<%= email %> class="form-control" />
               </form>
             </div>
           </div>
@@ -63,7 +71,7 @@
             </div>
             <div class="col-md-6">
                 <form action="#" method="post">
-                  <input type="text" value="@TelegramHandle" class="form-control" />
+                  <input type="text" value=<%= "@" + telegramUsername %> class="form-control" />
                 </form>
             </div>
           </div>

@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const subdomain = require('express-subdomain');
+const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const TelegramBot = require('node-telegram-bot-api');
@@ -64,7 +65,9 @@ app.engine('html', require('ejs').renderFile);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(require('cookie-parser')());
 
-app.use(require('body-parser').urlencoded({ extended: true }));
+const bodyParser = require('body-parser')
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(require('express-session')({ secret: 'keyboard cat', resave: true, saveUninitialized: true }));
 
 app.use(passport.initialize());
@@ -102,6 +105,7 @@ dashboardRouter.post('/auth/register', function(req, res) {
     const userData = {
       email: req.body.email,
       password: req.body.password,
+      apiKey: bcrypt.hashSync(req.body.email + Date.now().toString(), 10),
     }
     User.create(userData, function (err, user) {
       if (err) {
@@ -118,7 +122,11 @@ dashboardRouter.post('/auth/register', function(req, res) {
 // User only can access this endpoint if they're signed in
 dashboardRouter.get('/', signedIn,  function(req, res, next) {
   console.log(req.user);
-  res.render('dashboard.html');
+  res.render('dashboard.html', {
+    email: req.user.email,
+    telegramUsername: req.user.telegram.username ? req.user.telegram.username : "NOT_YET_SET_UP",
+    apiKey: req.user.apiKey,
+  });
 });
 
 app.use(subdomain('dashboard', dashboardRouter));
@@ -128,14 +136,19 @@ app.use(subdomain('dashboard', dashboardRouter));
 const apiRouter = express.Router();
 
 // Need to handle linking of account to telegram
-apiRouter.get('/v1/telegramLog', function(req, res) {
+apiRouter.post('/v1/logs/telegram', function(req, res) {
+  console.log(req.body.apiKey);
+  const apiKey = req.body.apiKey;
+  const message = req.body.message;
+  const group = req.body.group || null;
   // Find user via api key
-  User.findById(req.user._id, function(err, user) {
+  User.findOne({ apiKey: req.body.apiKey }, function(err, user) {
     if (err) {
       console.log(err);
     } else {
       // Send message via telegram
-      bot.sendMessage(user.telegram.id, req.body.message);
+      bot.sendMessage(user.telegram.id, message);
+      res.sendStatus(200);
     }
   })
 
@@ -185,3 +198,12 @@ bot.on('message', (msg) => {
     bot.sendMessage(userId, "Sorry I don't understand your commmand! Visit airlog.io for help.");
   });
 });
+
+
+/*
+TODO
+1. Pass data to front-end / back-end (DONE)
+2. Set-up POST endpoint for telegram messages (DONE)
+3. Do up the home page
+4. Let the user change credentials on settings page
+*/
