@@ -4,11 +4,10 @@ const subdomain = require('express-subdomain');
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-const TelegramBot = require('node-telegram-bot-api');
-const token = process.env.TELEGRAM_BOT_TOKEN;
-const bot = new TelegramBot(token, {polling: true});
 const path = require('path');
-const User = require('./models/User');
+const bot = require('./utils/telegramBotService.js');
+const User = require('./models/User.js');
+const Project = require('./models/Project.js');
 
 const PORT = process.env.PORT || 80;
 
@@ -105,7 +104,6 @@ dashboardRouter.post('/auth/register', function(req, res) {
     const userData = {
       email: req.body.email,
       password: req.body.password,
-      apiKey: bcrypt.hashSync(req.body.email + Date.now().toString(), 10),
     }
     User.create(userData, function (err, user) {
       if (err) {
@@ -122,10 +120,16 @@ dashboardRouter.post('/auth/register', function(req, res) {
 // User only can access this endpoint if they're signed in
 dashboardRouter.get('/', signedIn,  function(req, res, next) {
   console.log(req.user);
-  res.render('dashboard.html', {
-    email: req.user.email,
-    telegramUsername: req.user.telegram.username ? req.user.telegram.username : "NOT_YET_SET_UP",
-    apiKey: req.user.apiKey,
+
+  Project.findOne({ _id: req.user.projects[0].projectId}, function(err, project) {
+    if (err) console.log(err);
+    
+    res.render('dashboard.html', {
+      email: req.user.email,
+      telegramUsername: req.user.services.telegram.username ? req.user.services.telegram.username : "NOT_YET_SET_UP",
+      apiKey: project.apiKey,
+    });
+
   });
 });
 
@@ -136,25 +140,24 @@ app.use(subdomain('dashboard', dashboardRouter));
 const apiRouter = express.Router();
 
 // Need to handle linking of account to telegram
-apiRouter.post('/v1/logs/telegram', function(req, res) {
+apiRouter.post('/v1/me/logs', function(req, res) {
   console.log(req.body.apiKey);
   const apiKey = req.body.apiKey;
   const message = req.body.message;
-  const group = req.body.group || null;
   // Find user via api key
-  User.findOne({ apiKey: req.body.apiKey }, function(err, user) {
+  Project.findOne({ apiKey: req.body.apiKey }, function(err, project) {
     if (err) {
       console.log(err);
     } else {
       // Send message via telegram
-      bot.sendMessage(user.telegram.id, message);
+      project.log(message);
       res.sendStatus(200);
     }
   })
 
 });
 
-apiRouter.post('/v1/emailLog', function(req, res) {
+apiRouter.get('/v1/me/', function(req, res) {
   if (req.body.message) {
 
   }
@@ -175,37 +178,17 @@ console.log('Running on http://localhost:' + PORT);
 
 
 // TELEGRAM BOT ------------------------------------------
-bot.onText(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/, (msg) => {
-  const userId = msg.from.id;
-  const username = msg.from.username;
-  User.findOneAndUpdate({ email : msg.text }, {
-    'telegram.id' : userId,
-    'telegram.username' : username,
-  }, function(err, user) {
-    if (err) {
-      bot.sendMessage(userId, 'Please enter the email that you signed up with on airlog!');
-    }
-  });
-  bot.sendMessage(userId, 'Account linked!');
-});
 
-bot.on('message', (msg) => {
-  const userId = msg.from.id;
-  User.findOne({ 'telegram.id' : userId }, (err, user) => {
-    if (err) {
-      bot.sendMessage(userId, "Link your account by entering the email that you signed up with on airlog!");
-    }
-    bot.sendMessage(userId, "Sorry I don't understand your commmand! Visit airlog.io for help.");
-  });
-});
 
 
 /*
 TODO
 1. Pass data to front-end / back-end (DONE)
 2. Set-up POST endpoint for telegram messages (DONE)
-3. Do up the home page
+3. Do up the home page -- HALF DONE
 4. Let the user change credentials on settings page
+5. Do up API docs
+6. Handle invalid sign up properly
 
 Graphics color is #72b6ff
 */
