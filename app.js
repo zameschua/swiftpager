@@ -206,4 +206,6 @@ TODO
 2. Set-up POST endpoint for telegram messages (DONE)
 3. Do up the home page
 4. Let the user change credentials on settings page
+
+Graphics color is #72b6ff
 */
