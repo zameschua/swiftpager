@@ -190,5 +190,5 @@ TODO
 5. Do up API docs
 6. Handle invalid sign up properly
 
-Graphics color is #72b6ff
+Graphics color is #278fff
 */
