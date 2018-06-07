@@ -17,6 +17,7 @@
     "express-subdomain": "^1.0.5",
     "mongoose": "^5.0.17",
     "node-telegram-bot-api": "^0.30.0",
+    "nodemailer": "^4.6.5",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "telegraf": "^3.21.0"

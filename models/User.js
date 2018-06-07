@@ -1,91 +1,121 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 const bcrypt = require('bcryptjs');
 const Project = require('./Project');
-const bot = require('../utils/telegramBotService');
+const emailService = require('../utils/emailService');
 
-const UserSchema = new mongoose.Schema({
+const UserSchema = new Schema({
+  emailAddress: {
+    type: String,
+    unique: true,
+    required: true,
+    trim: true
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  services: {
+    telegram: {
+      username: {
+        type: String,
+        default: "",
+      },
+      id: {
+        type: String,
+        default: "",
+      },
+    },
     email: {
+      emailAddress: {
         type: String,
-        unique: true,
-        required: true,
-        trim: true
+        default: "",
+      },
     },
-    password: {
-        type: String,
-        required: true,
-    },
-    services: {
-        telegram: {
-            username: {
-                type: String,
-                default: "",
-            },
-            id: {
-                type: String,
-                default: "",
-            }
-        },
-    },
-    projects: [{
-        projectId: mongoose.Schema.Types.ObjectId,
-        // isModerator?
-    }],
+  },
+  projects: [{
+    projectId: mongoose.Schema.Types.ObjectId,
+    // isModerator?
+  }],
 });
 
 // ------------------ Pre Hook -------------------
 //hashing a password before saving it to the database
 UserSchema.pre('save', function(next) {
-    const user = this;
-    
-    const projectData = {
-        users: [{
-            userId: this._id,
-            services: [],
-        }],
-        logs: [],
-        apiKey: "",
-    }
-    // Create the user's default project
-    Project.create(projectData, function (err, project) {
-        if (err) {
-            // HANDLE ERRORS HERE LATER
-            console.log(err);
-            return err;
-        } else {
-            user.projects = [{
-                projectId: project._id,
-            }];
-        }
-    });
+  const user = this;
+  
+  this.services.email.emailAddress = this.emailAddress;
 
-    // Hash the password
-    bcrypt.hash(user.password, 10, function (err, hash) {
+  const projectData = {
+    users: [{
+      userId: this._id,
+      services: [],
+    }],
+    logs: [],
+    apiKey: "",
+  }
+  // Create the user's default project
+  Project.create(projectData, function (err, project) {
+    if (err) {
+      // HANDLE ERRORS HERE LATER
+      console.log(err);
+      return err;
+    } else {
+      user.projects = [{
+        projectId: project._id,
+      }];
+    }
+  });
+
+  // Hash the password
+  bcrypt.hash(user.password, 10, function (err, hash) {
     if (err) {
         return next(err);
     }
     user.password = hash;
     next();
-  })
+  });
 });
 
 // ---------------------- Methods ------------------------------
 UserSchema.methods.verifyPassword = function(password, callback) {
-    callback(err, bcrypt.compareSync(password, this.password));
+  callback(err, bcrypt.compareSync(password, this.password));
 };
 
 UserSchema.methods.getProjects = function() {
-    return this.projects.forEach((projectId) => Project.getProjectById(projectId));
+  return this.projects.forEach((projectId) => Project.getProjectById(projectId));
 }
 
-UserSchema.methods.sendLog = function(service, log){
-    if (service === "telegram") {
-        this.sendTelegramLog(log);
-    }
+UserSchema.methods.sendLog = function(service, log) {
+  console.log(log);
+  if (service === "telegram") {
+    this.sendTelegramLog(log);
+  } else if (service === "email") {
+    this.sendEmailLog(log);
+  }
 }
 
 UserSchema.methods.sendTelegramLog = function(log) {
-    const messageToSend = `${log.timestamp.toString()}: ${log.message}`
-    bot.sendMessage(this.services.telegram.id, messageToSend);
+  const messageToSend = `${new Date(log.timestamp).toTimeString()}: ${log.message}`
+  const bot = require('../utils/telegramBotService');
+  bot.sendMessage(this.services.telegram.id, messageToSend);
+}
+
+UserSchema.methods.sendEmailLog = function(log) {
+  const mailOptions = {
+    from: process.env.GMAIL_ADDRESS,
+    to: this.services.email.emailAddress,
+    subject: "Log from Lumberjack",
+    text: log.message,
+  };
+  
+  emailService.sendMail(mailOptions, function(error, info){
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Email sent: ' + info.response);
+    }
+  });
 }
 
 const User = mongoose.model('User', UserSchema);

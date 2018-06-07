@@ -14,35 +14,42 @@
   <link rel="stylesheet" href="css/shards-demo.min.css?v=2.0.1">
 </head>
 
-<body>
-  <div class="loader">
-    <div class="page-loader"></div>
-  </div>
-
+<body style="height: 100vh">
 <!-- Page Content -->
-<div class="page-content container">
-  <!-- Content -->
-  <div class="content clearfix">
-      <!-- Form Controls: Using Icons - Seamless -->
-      <div class="row mb-2 justify-content-center">
-        <div class="col-6">
-            <div class="card">
-            <div class="card-body">
-              <h3 class="text-center mt-3 mb-5 ml-auto">Register!</h3>
-              <form action="/auth/register" method="post">
-                <div class="row">
-                  <div class="form-group col-md-12">
-                    <div class="input-group input-group-seamless">
-                      <span class="input-group-prepend">
-                        <span class="input-group-text">
-                          <i class="fa fa-envelope"></i>
-                        </span>
+  <div class="container">
+    <!-- Form Controls: Using Icons - Seamless -->
+    <div class="row mb-2 justify-content-center h-100">
+      <div class="col-md-6">
+        <div class="mt-5">
+          <div class="card">
+          <div class="card-body">
+            <h3 class="text-center mt-3 mb-5 ml-auto">Register!</h3>
+            <form action="/auth/register" method="post">
+              <div class="row">
+                <div class="form-group col-md-12">
+                  <div class="input-group input-group-seamless">
+                    <span class="input-group-prepend">
+                      <span class="input-group-text">
+                        <i class="fa fa-envelope"></i>
                       </span>
-                      <input type="email" name="email" class="form-control" id="form-email" placeholder="Email">
-                    </div>
+                    </span>
+                    <input type="email" name="emailAddress" class="form-control" id="form-email" placeholder="Email">
                   </div>
                 </div>
-                <div class="row">
+              </div>
+              <div class="row">
+                <div class="form-group col-md-12">
+                  <div class="input-group input-group-seamless">
+                    <span class="input-group-prepend">
+                        <span class="input-group-text">
+                          <i class="fa fa-lock"></i>
+                        </span>
+                    </span>
+                    <input type="password" name="password" class="form-control" id="form-password" placeholder="Password">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
                   <div class="form-group col-md-12">
                     <div class="input-group input-group-seamless">
                       <span class="input-group-prepend">
@@ -50,29 +57,16 @@
                             <i class="fa fa-lock"></i>
                           </span>
                       </span>
-                      <input type="password" name="password" class="form-control" id="form-password" placeholder="Password">
+                      <input type="password" name="passwordConfirm" class="form-control" id="form-passwordConfirm" placeholder="Confirm password">
                     </div>
                   </div>
                 </div>
-                <div class="row">
-                    <div class="form-group col-md-12">
-                      <div class="input-group input-group-seamless">
-                        <span class="input-group-prepend">
-                            <span class="input-group-text">
-                              <i class="fa fa-lock"></i>
-                            </span>
-                        </span>
-                        <input type="password" name="passwordConfirm" class="form-control" id="form-passwordConfirm" placeholder="Confirm password">
-                      </div>
-                    </div>
-                  </div>
-                <input type="submit" value="Register" class="btn btn-block btn-primary btn-pill btn-block" />
-              </form>
-            </div>
+              <input type="submit" value="Register" class="btn btn-block btn-primary btn-pill btn-block" />
+            </form>
           </div>
+        </div>
 
-          <p class="text-center mt-5">Already have an account? <a href="http://dashboard.lvh.me/signin"><b>Sign in</b></a></p>
-          
+        <p class="text-center mt-5">Already have an account? <a href="http://dashboard.lvh.me/signin"><b>Sign in</b></a></p>
         </div>
       </div>
     </div>

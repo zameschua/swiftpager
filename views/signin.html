@@ -14,22 +14,17 @@
   <link rel="stylesheet" href="css/shards-demo.min.css?v=2.0.1">
 </head>
 
-<body>
-  <div class="loader">
-    <div class="page-loader"></div>
-  </div>
-
-  <!-- Page Content -->
-  <div class="page-content container">
-    <!-- Content -->
-    <div class="content clearfix">
+<body style="height: 100vh">
+    <div class="container h-100">
         <!-- Form Controls: Using Icons - Seamless -->
-        <div class="row mb-2 justify-content-center">
-          <div class="col-6">
+        <div class="row mb-2 justify-content-center h-100">
+          <div class="col-md-6">
+            <div class="mt-5">
              <div class="card">
               <div class="card-body">
                 <h3 class="text-center mt-3 mb-5 ml-auto">Welcome back!</h3>
                 <form action="/auth/signin" method="post">
+                 
                   <div class="row">
                     <div class="form-group col-md-12">
                       <div class="input-group input-group-seamless">
@@ -38,29 +33,31 @@
                             <i class="fa fa-envelope"></i>
                           </span>
                         </span>
-                        <input type="email" name="email" class="form-control" id="form1-email" placeholder="Email">
+                        <input type="email" name="emailAddress" class="form-control" id="form1-email" placeholder="Email">
                       </div>
                     </div>
                   </div>
+                  
                   <div class="row">
                     <div class="form-group col-md-12">
                       <div class="input-group input-group-seamless">
                         <span class="input-group-prepend">
-                            <span class="input-group-text">
-                              <i class="fa fa-lock"></i>
-                            </span>
+                          <span class="input-group-text">
+                            <i class="fa fa-lock"></i>
+                          </span>
                         </span>
                         <input type="password" name="password" class="form-control" id="form2-password" placeholder="Password">
                       </div>
                     </div>
                   </div>
+
                   <input type="submit" value="Sign in" class="btn btn-block btn-primary btn-pill btn-block" />
                 </form>
               </div>
             </div>
 
             <p class="text-center mt-5">Don't have an account? <a href="http://dashboard.lvh.me/register"><b>Sign up</b></a></p>
-            
+            </div>
           </div>
         </div>
       </div>

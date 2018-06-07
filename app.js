@@ -23,11 +23,11 @@ db.once('open', function () {
 });
 
 passport.use(new LocalStrategy({
-  usernameField: 'email',
+  usernameField: 'emailAddress',
   passwordField: 'password'
   },
-  function(email, password, done) {
-    User.findOne({ email: email }, function (err, user) {
+  function(emailAddress, password, done) {
+    User.findOne({ emailAddress: emailAddress }, function (err, user) {
       /*
       if (err) { return done(err); }
       if (!user) { return done(null, false); }
@@ -98,11 +98,11 @@ dashboardRouter.get('/auth/signout', function(req, res){
 });
 
 dashboardRouter.post('/auth/register', function(req, res) {
-  if (req.body.email &&
+  if (req.body.emailAddress &&
     req.body.password &&
     req.body.password === req.body.passwordConfirm) {
     const userData = {
-      email: req.body.email,
+      emailAddress: req.body.emailAddress,
       password: req.body.password,
     }
     User.create(userData, function (err, user) {
@@ -119,13 +119,11 @@ dashboardRouter.post('/auth/register', function(req, res) {
 
 // User only can access this endpoint if they're signed in
 dashboardRouter.get('/', signedIn,  function(req, res, next) {
-  console.log(req.user);
-
   Project.findOne({ _id: req.user.projects[0].projectId}, function(err, project) {
     if (err) console.log(err);
     
     res.render('dashboard.html', {
-      email: req.user.email,
+      email: req.user.emailAddress,
       telegramUsername: req.user.services.telegram.username ? req.user.services.telegram.username : "NOT_YET_SET_UP",
       apiKey: project.apiKey,
     });
@@ -141,7 +139,6 @@ const apiRouter = express.Router();
 
 // Need to handle linking of account to telegram
 apiRouter.post('/v1/me/logs', function(req, res) {
-  console.log(req.body.apiKey);
   const apiKey = req.body.apiKey;
   const message = req.body.message;
   // Find user via api key
@@ -150,6 +147,7 @@ apiRouter.post('/v1/me/logs', function(req, res) {
       console.log(err);
     } else {
       // Send message via telegram
+      console.log(project);
       project.log(message);
       res.sendStatus(200);
     }

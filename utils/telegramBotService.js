@@ -6,7 +6,7 @@ const User = require('../models/User.js');
 bot.onText(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/, (msg) => {
   const userId = msg.from.id;
   const username = msg.from.username;
-  User.findOneAndUpdate({ "email" : msg.text }, {
+  User.findOneAndUpdate({ "emailAddress" : msg.text }, {
     "services.telegram.id" : userId,
     "services.telegram.username" : username,
   }, function(err, user) {
