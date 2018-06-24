@@ -124,7 +124,7 @@ dashboardRouter.get('/', signedIn,  function(req, res, next) {
     
     res.render('dashboard.html', {
       email: req.user.emailAddress,
-      telegramUsername: req.user.services.telegram.username ? req.user.services.telegram.username : "NOT_YET_SET_UP",
+      telegramUsername: req.user.services.telegram.username ? "@" + req.user.services.telegram.username : "Seems like you haven't set up your Telegram account yet!",
       apiKey: project.apiKey,
     });
 
