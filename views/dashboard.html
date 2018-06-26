@@ -65,17 +65,18 @@
       <div class="col-md-10">
         <div class="container">
 
-          <div style="border: 1px solid #dddddd; border-radius: 5px; padding: 10px; margin: 10px">
-            <p><b>Email</b></p>
+          <div style="border: 1px solid #dddddd; border-radius: 5px; padding: 30px; margin: 10px">
+            <h4>Email</h4>
+            <hr />
             <div class="row">
-              <div class="col-md-3">Linked email</div>
-              <div class="col-md-9">
+              <div class="col-md-4">Linked email</div>
+              <div class="col-md-8">
                 <p class="text-muted"><%= email %></p>
               </div>
             </div>
             <div class="row">
-              <div class="col-md-3">Activated</div>
-              <div class="col-md-9">
+              <div class="col-md-4">Activated</div>
+              <div class="col-md-8">
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" value="" id="defaultCheck1" />
                 </div>
@@ -83,22 +84,46 @@
             </div>
           </div>
 
-          <div style="border: 1px solid #dddddd; border-radius: 5px; padding: 10px; margin: 10px">
-            <p><b>Telegram</b></p>
+          <div style="border: 1px solid #dddddd; border-radius: 5px; padding: 30px; margin: 10px">
+            <h4>Telegram</h5>
+            <hr />
             <div class="row">
-              <div class="col-md-3">Linked Telegram account</div>
-              <div class="col-md-9">
+              <div class="col-md-4">Linked Telegram account</div>
+              <div class="col-md-8">
                 <p class="text-muted"><%= telegramUsername %></p>
               </div>
             </div>
             <div class="row">
-              <div class="col-md-3">Activated</div>
-              <div class="col-md-9">
+              <div class="col-md-4">Activated</div>
+              <div class="col-md-8">
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" value="" id="defaultCheck1" />
                 </div>
               </div>
             </div>
+            <hr />
+            <a href="javascript:void(0)" data-toggle="modal" data-target="#exampleModalCenter">How to link a Telegram account?</a>
+            <!--Start Telegram modal-->
+            <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Linking Lumbr with your Telegram account</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <ol>
+                      <li>Search for @LumbrBot on Telegram</li>
+                      <li>Click on 'start'</li>
+                      <li>Simply type in the email address that you used (MIGHT have to change to some API key thingy because the same email address can use for different projects)</li>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!--End Telegram modal-->
           </div>
 
         </div>
