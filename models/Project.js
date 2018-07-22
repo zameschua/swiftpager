@@ -62,6 +62,27 @@ ProjectSchema.methods.sendLog = function(log) {
   });
 }
 
+/**
+ * Allow user to update account settings
+ * Object should only have 1 key (Might be changed later to support more keys)
+ * 
+ * {
+ *  emailAddress: newEmailAddress
+ * }
+ * 
+ * @returns updatedUser upon successful update
+ */
+ProjectSchema.methods.update = function(updateObject) {
+  const key = Object.keys(updateObject)[0];
+  const value = updateObject[key];
+  this[key] = value;
+
+  this.save(function (err, updatedProject) {
+    if (err) return err;
+    return updatedProject;
+  });
+}
+
 // ------------------ Static Methods --------------------
 ProjectSchema.statics.getProjectById = function(id) {
   return this.find({ _id: id });

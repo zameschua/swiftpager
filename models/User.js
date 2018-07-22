@@ -118,5 +118,26 @@ UserSchema.methods.sendEmailLog = function(log) {
   });
 }
 
+/**
+ * Allow user to update account settings
+ * Object should only have 1 key (Might be changed later to support more keys)
+ * 
+ * {
+ *  emailAddress: newEmailAddress
+ * }
+ * 
+ * @returns updatedUser upon successful update
+ */
+UserSchema.methods.update = function(updateObject) {
+    const key = Object.keys(updateObject)[0];
+    const value = updateObject[key];
+    this[key] = value;
+
+    this.save(function (err, updatedUser) {
+      if (err) return err;
+      return updatedUser;
+    });
+}
+
 const User = mongoose.model('User', UserSchema);
 module.exports = User;

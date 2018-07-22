@@ -92,6 +92,7 @@ dashboardRouter.post('/auth/signin',
     res.redirect('/');
 });
 
+// TODO: Change to POST
 dashboardRouter.get('/auth/signout', function(req, res){
   req.logout();
   res.redirect('http://lvh.me');
@@ -155,9 +156,29 @@ apiRouter.post('/v1/me/logs', function(req, res) {
 
 });
 
+/**
+ * TODO: Rewrite front end to return the info from GET request
+ */
 apiRouter.get('/v1/me/', function(req, res) {
-  if (req.body.message) {
+  Users.findById(req.body.userId, function(err, user) {
+    if (err) {
+      console.log(err);
+    } else {
+      // Send message via telegram
+      console.log(project);
+      project.log(message);
+      res.sendStatus(200);
+    }
+  })
+});
 
+/**
+ * // TODO
+ * Allow user to change part or whole of his account settings
+ */
+apiRouter.patch('/v1/me/', function(req, res) {
+  if (req.body.message) {
+    User.update(req.body);
   }
 })
 
