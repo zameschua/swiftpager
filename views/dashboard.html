@@ -16,9 +16,9 @@
 
 <body style="height: 100vh">
   <!-- Navigation -->
-  <nav class="container-fluid navbar navbar-expand-lg" style="flex-shrink: 0; border-bottom: 1px solid #dddddd">
+  <nav class="navbar navbar-expand-lg" style="flex-shrink: 0; border-bottom: 1px solid #dddddd; height: 50px;">
     <img src="images/demo/shards-logo-black.svg" alt="Example Navbar 1" class="mr-2" height="30">
-    <a class="navbar-brand" href="#">Shards</a>
+    <a class="navbar-brand" href="#">Lumbr</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown-7" aria-controls="navbarNavDropdown-7"
       aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -38,69 +38,97 @@
     </div>
   </nav>
 
-  <div class="container-fluid">
-    <div class="row" style="height: 100%">
-      
+  <div class="container">
+    <!--Project info -->
+    <div class="mt-4">
+      <h3>Default workspace</h3>
+      <p style="overflow-wrap: break-word;" data-toggle="tooltip" data-placement="top" title="Copy this API key to use in your app. Remember to keep this API key safe!">
+        Api Key: <%= apiKey %>
+      </p>
+    </div>
+    <!--End project info -->
+          
+    <hr class="my-4" />
+
+    <div class="row mt-4">
       <!-- Side Nav -->
-      <div class="col-md-2 p-0" style="border-right: 1px solid #dddddd">
-        <div class="bg-primary">
-          <a href="#" class="nav-link text-white">Home</a>
+      <div class="col-md-2">
+        <div class="nav flex-column nav-pills">
+          <a href="#" class="nav-item nav-link active">Services</a>
+          <a href="#" class="nav-item nav-link disabled">Logs</a>
+          <a href="#" class="nav-item nav-link disabled">Team management</a> 
         </div>
-        <div>
-          <a href="#" class="nav-link text-muted">Projects</a>
-        </div>      
       </div>
       <!-- End Side Nav -->
-      
+
       <!-- Main Area -->
-      <div class="col-sm-9 col-md-10" style="height: 100%">
-        <div class="container mt-5">
-          <h3>Dashboard Home</div>
-          <hr />
-          <div class="container mt-5">
+      <div class="col-md-10">
+        <div class="container">
+
+          <div style="border: 1px solid #dddddd; border-radius: 5px; padding: 30px; margin: 10px">
+            <h4>Email</h4>
+            <hr />
             <div class="row">
-              <div class="col-md-3"><h5>Service</h5></div>
-              <div class="col-md-8"><h5>Account linked to</h5></div>
-              <div class="col-md-1"><h5>Enabled</h5></div>
-            </div>
-            <div class="row mt-4">
-              <div class="col-md-3">
-                <p><b>Api Key</b></p>
-              </div>
+              <div class="col-md-4">Linked email</div>
               <div class="col-md-8">
-                <input class="form-control" readonly value=<%= apiKey %>></input>
+                <p class="text-muted"><%= email %></p>
               </div>
             </div>
             <div class="row">
-              <div class="col-md-3">
-                <p><b>Email</b></p>
-              </div>
+              <div class="col-md-4">Activated</div>
               <div class="col-md-8">
-                <form action="#" method="post">
-                  <input type="text" class="form-control" readonly value=<%= email %> />
-                </form>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="defaultCheck1" />
+                </div>
               </div>
-              <div class="col-md-1 text-center">
-                <input class="form-check-input" type="checkbox" value="" id="defaultCheck1">
-              </div>   
+            </div>
+          </div>
+
+          <div style="border: 1px solid #dddddd; border-radius: 5px; padding: 30px; margin: 10px">
+            <h4>Telegram</h5>
+            <hr />
+            <div class="row">
+              <div class="col-md-4">Linked Telegram account</div>
+              <div class="col-md-8">
+                <p class="text-muted"><%= telegramUsername %></p>
+              </div>
             </div>
             <div class="row">
-              <div class="col-md-3">
-                <p><b>Telegram</b></p>
-              </div>
+              <div class="col-md-4">Activated</div>
               <div class="col-md-8">
-                  <form action="#" method="post">
-                    <input type="text" class="form-control" readonly value=<%= "@" + telegramUsername %> />
-                  </form>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="defaultCheck1" />
+                </div>
               </div>
-              <div class="col-md-1 text-center">
-                <input class="form-check-input" type="checkbox" value="" id="defaultCheck1">
-              </div>  
             </div>
-          </div>        
+            <hr />
+            <a href="javascript:void(0)" data-toggle="modal" data-target="#exampleModalCenter">How to link a Telegram account?</a>
+            <!--Start Telegram modal-->
+            <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Linking Lumbr with your Telegram account</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <ol>
+                      <li>Search for @LumbrBot on Telegram</li>
+                      <li>Click on 'start'</li>
+                      <li>Simply type in the email address that you used (MIGHT have to change to some API key thingy because the same email address can use for different projects)</li>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!--End Telegram modal-->
+          </div>
+
         </div>
-        <!-- End Main Area -->
       </div>
+      <!-- End Main Area -->
     </div>
   </div>
 
