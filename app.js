@@ -73,7 +73,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
-// dashboard.domain.com -------------------------------------------------
+/********************************************************************
+ * dashboard.domain.com 
+ ********************************************************************/
 var dashboardRouter = express.Router();
 
 dashboardRouter.get('/signin', function(req, res) {
@@ -133,14 +135,58 @@ dashboardRouter.get('/', signedIn,  function(req, res, next) {
 });
 
 app.use(subdomain('dashboard', dashboardRouter));
-// -------------------------------------------------------------
 
-// api.domain.com-------------------------------------------------------------
+/********************************************************************
+ * api.domain.com/v1
+ ********************************************************************/
 const apiRouter = express.Router();
 
-// Need to handle linking of account to telegram
-apiRouter.post('/v1/me/logs', function(req, res) {
-  const apiKey = req.body.apiKey;
+// USER API
+
+/**
+ * Creates a new user
+ */
+apiRouter.post('/v1/users', function(req, res) {
+
+});
+
+/**
+ * Gets the information for a single user
+ */
+apiRouter.get('/v1/users/:userId', function(req, res) {
+  Users.findById(req.params.userId, function(err, user) {
+    if (err) {
+      console.error(err);
+      // Handle error here
+    }
+
+    res.json({
+      user: user,
+    });
+  });
+});
+
+/**
+ * Updates the information for a user
+ */
+apiRouter.patch('/v1/users/:userId', function(req, res) {
+  Users.findById(req.body.userId, function(err, user) {
+    if (err) console.error(err);
+    
+    User.update(req.body).then(response => {
+      res.sendStatus(200);
+    }).catch(err => {
+      console.error(err);
+      res.sendStatus(404); // TODO: Make the call return the correct error code
+    });
+  });
+});
+
+/**
+ * Gets the default project for the user, then sends an alert
+ */
+apiRouter.post('/v1/users/:userId/notify', function(req, res) {
+  const apiKey = req.params.apiKey;
   const message = req.body.message;
   // Find user via api key
   Project.findOne({ apiKey: req.body.apiKey }, function(err, project) {
@@ -153,34 +199,56 @@ apiRouter.post('/v1/me/logs', function(req, res) {
       res.sendStatus(200);
     }
   })
-
 });
 
 /**
- * TODO: Rewrite front end to return the info from GET request
+ * Gets a list of projects that the user belongs to
  */
-apiRouter.get('/v1/me/', function(req, res) {
-  Users.findById(req.body.userId, function(err, user) {
+apiRouter.get('/v1/users/:userId/projects', function(req, res) {
+  const userId = req.params.userId;
+  User.findById(userId, (err, user) => {
     if (err) {
-      console.log(err);
-    } else {
-      // Send message via telegram
-      console.log(project);
-      project.log(message);
-      res.sendStatus(200);
+      console.error(err);
+      // Handle error here
     }
-  })
+    res.json({
+      projects: user.projects,
+    });
+  });
 });
 
-/**
- * // TODO
- * Allow user to change part or whole of his account settings
+
+//PROJECT API
+
+ /**
+ * Get the information of a single project
  */
-apiRouter.patch('/v1/me/', function(req, res) {
-  if (req.body.message) {
-    User.update(req.body);
-  }
-})
+apiRouter.get('/v1/projects/:projectId', function(req, res) {
+  const projectId = req.params.userId;
+  Project.findById(userId, (err, project) => {
+    if (err) {
+      console.error(err);
+      // Handle error here
+    }
+    res.json({
+      project: project,
+    });
+  });
+});
+
+ /**
+ * Create a new project
+ */
+apiRouter.post('/v1/projects/:projectId', function(req, res) {
+
+});
+
+ /**
+ * Notify all users involved in a project
+ */
+apiRouter.get('/v1/projects/:projectId/notify', function(req, res) {
+
+});
 
 
 app.use(subdomain('api', apiRouter));
@@ -194,20 +262,6 @@ app.get('/', function (req, res) {
 app.listen(PORT)
 console.log('Running on http://localhost:' + PORT);
 
-
-
-// TELEGRAM BOT ------------------------------------------
-
-
-
 /*
-TODO
-1. Pass data to front-end / back-end (DONE)
-2. Set-up POST endpoint for telegram messages (DONE)
-3. Do up the home page -- HALF DONE
-4. Let the user change credentials on settings page
-5. Do up API docs
-6. Handle invalid sign up properly
-
 Graphics color is #278fff
 */

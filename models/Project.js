@@ -33,7 +33,7 @@ const ProjectSchema = new Schema({
     type: String,
     unique: true,
   }
-});
+}, { _id : false });
 
 // -------------------- Methods ----------------------
 ProjectSchema.methods.log = function(message) {

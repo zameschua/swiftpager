@@ -33,10 +33,13 @@ const UserSchema = new Schema({
       },
     },
   },
-  projects: [{
-    projectId: mongoose.Schema.Types.ObjectId,
-    // isModerator?
-  }],
+  projects: {
+    type: [{
+      projectId: mongoose.Schema.Types.ObjectId,
+      // isModerator?
+    }],
+    _id: false,
+  },
 });
 
 // ------------------ Pre Hook -------------------
@@ -58,12 +61,13 @@ UserSchema.pre('save', function(next) {
   Project.create(projectData, function (err, project) {
     if (err) {
       // HANDLE ERRORS HERE LATER
-      console.log(err);
+      console.error(err);
       return err;
     } else {
       user.projects = [{
         projectId: project._id,
       }];
+      user.save();
     }
   });
 
