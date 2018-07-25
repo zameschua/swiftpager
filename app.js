@@ -39,11 +39,20 @@ passport.use(new LocalStrategy({
 ));
 
 // Helper function to check if user is signed in
-function signedIn(req, res, next) {
+function appSignedIn(req, res, next) {
   if (req.user) {
       next();
   } else {
       res.redirect('/signin');
+  }
+}
+
+// Helper function to check if user is signed in
+function apiSignedIn(req, res, next) {
+  if (req.user) {
+      next();
+  } else {
+      res.status(403).json({ error: 'Not signed in' });
   }
 }
 
@@ -74,19 +83,19 @@ app.use(passport.session());
 
 
 /********************************************************************
- * dashboard.domain.com 
+ * app.domain.com 
  ********************************************************************/
-var dashboardRouter = express.Router();
+var appRouter = express.Router();
 
-dashboardRouter.get('/signin', function(req, res) {
+appRouter.get('/signin', function(req, res) {
   res.render('signin.html');
 });
 
-dashboardRouter.get('/register', function (req, res) {
+appRouter.get('/register', function (req, res) {
   res.render('register.html');
 })
 
-dashboardRouter.post('/auth/signin',
+appRouter.post('/auth/signin',
   passport.authenticate('local', { failureRedirect: '/signin' }),
   function(req, res) {
     // If this function gets called, authentication was successful.
@@ -95,37 +104,65 @@ dashboardRouter.post('/auth/signin',
 });
 
 // TODO: Change to POST
-dashboardRouter.get('/auth/signout', function(req, res){
+appRouter.get('/auth/signout', function(req, res){
   req.logout();
-  res.redirect('http://lvh.me');
+  res.redirect('http://www.lvh.me');
 });
 
-dashboardRouter.post('/auth/register', function(req, res) {
+appRouter.post('/auth/register', function(req, res) {
   if (req.body.emailAddress &&
     req.body.password &&
     req.body.password === req.body.passwordConfirm) {
     const userData = {
       emailAddress: req.body.emailAddress,
       password: req.body.password,
+      services: {
+        email: {
+          emailAddress: req.body.emailAddress,
+        }
+      }
     }
     User.create(userData, function (err, user) {
       if (err) {
-        // HANDLE ERRORS HERE LATER
-        console.log(err);
-        return err;
-      } else {
-        return res.redirect('/');
+        console.error(err);
+        res.status(400).json({ error: "Failed to create user" });
+        return;
       }
+
+      const projectData = {
+        users: [{
+          userId: user._id,
+          services: ['email'],
+        }],
+        apiKey: '',
+      }
+      // Create the user's default project
+      Project.create(projectData, function (err, project) {
+        if (err) {
+          console.error(err);
+          res.status(200).json({ error: 'Failed to create default project' });
+          return err;
+        } else {
+          user.projects = [{
+            projectId: project._id,
+          }];
+          user.save();
+        }
+      });
+      res.redirect('/');
     });
   }
-})
+});
 
 // User only can access this endpoint if they're signed in
-dashboardRouter.get('/', signedIn,  function(req, res, next) {
+appRouter.get('/', appSignedIn,  function(req, res, next) {
   Project.findOne({ _id: req.user.projects[0].projectId}, function(err, project) {
-    if (err) console.log(err);
+    if (err) {
+      console.error(err);
+      res.status(404).json({ error: 'Project not found' });
+    }
     
-    res.render('dashboard.html', {
+    res.render('app.html', {
       email: req.user.emailAddress,
       telegramUsername: req.user.services.telegram.username ? "@" + req.user.services.telegram.username : "Seems like you haven't set up your Telegram account yet!",
       apiKey: project.apiKey,
@@ -134,7 +171,7 @@ dashboardRouter.get('/', signedIn,  function(req, res, next) {
   });
 });
 
-app.use(subdomain('dashboard', dashboardRouter));
+app.use(subdomain('app', appRouter));
 
 /********************************************************************
  * api.domain.com/v1
@@ -147,38 +184,79 @@ const apiRouter = express.Router();
  * Creates a new user
  */
 apiRouter.post('/v1/users', function(req, res) {
+  // Handle validation here
+  if (req.body.emailAddress &&
+    req.body.password &&
+    req.body.password === req.body.passwordConfirm) {
+    const userData = {
+      emailAddress: req.body.emailAddress,
+      password: req.body.password,
+      services: {
+        email: {
+          emailAddress: req.body.emailAddress,
+        }
+      }
+    }
+    User.create(userData, function (err, user) {
+      if (err) {
+        console.error(err);
+        res.status(400).json({ error: "Failed to create user" });
+        return;
+      }
 
+      const projectData = {
+        users: [{
+          userId: user._id,
+          services: [],
+        }],
+        apiKey: '',
+      }
+      // Create the user's default project
+      Project.create(projectData, function (err, project) {
+        if (err) {
+          console.error(err);
+          res.status(200).json({ error: 'Failed to create default project' });
+          return err;
+        } else {
+          user.projects = [{
+            projectId: project._id,
+          }];
+          user.save();
+        }
+      });
+
+      res.status(200).json({ user: user });
+    });
+  }
 });
 
 /**
  * Gets the information for a single user
  */
 apiRouter.get('/v1/users/:userId', function(req, res) {
-  Users.findById(req.params.userId, function(err, user) {
-    if (err) {
+  User.findById(req.params.userId, function(err, user) {
+    if (err || !user) {
       console.error(err);
-      // Handle error here
+      res.status(404).json({ error: 'User not found' });
+      return;
     }
 
-    res.json({
-      user: user,
-    });
+    res.status(200).json({ user: user });
   });
 });
 
 /**
  * Updates the information for a user
  */
+// TODO: Limit the access to password
 apiRouter.patch('/v1/users/:userId', function(req, res) {
-  Users.findById(req.body.userId, function(err, user) {
-    if (err) console.error(err);
-    
-    User.update(req.body).then(response => {
-      res.sendStatus(200);
-    }).catch(err => {
+  User.findOneAndUpdate( {_id: req.params.userId}, { $set: req.body }, { new: true }, function(err, user) {
+    if (err || !user) {
       console.error(err);
-      res.sendStatus(404); // TODO: Make the call return the correct error code
-    });
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    res.status(200).send({ user: user });
   });
 });
 
@@ -186,18 +264,18 @@ apiRouter.patch('/v1/users/:userId', function(req, res) {
  * Gets the default project for the user, then sends an alert
  */
 apiRouter.post('/v1/users/:userId/notify', function(req, res) {
-  const apiKey = req.params.apiKey;
+  const apiKey = req.body.apiKey;
   const message = req.body.message;
   // Find user via api key
-  Project.findOne({ apiKey: req.body.apiKey }, function(err, project) {
-    if (err) {
-      console.log(err);
-    } else {
-      // Send message via telegram
-      console.log(project);
-      project.log(message);
-      res.sendStatus(200);
+  Project.findOne({ apiKey: apiKey }, function(err, project) {
+    if (err || !project) {
+      console.error(err);
+      res.status(404).json({ error: 'Cannot find project' });
+      return;
     }
+    project.notify(message);
+    // Project.notify should be async, should wait for response from project.notify
+    res.status(200).json({ message: 'Message sent!' });
   })
 });
 
@@ -207,11 +285,12 @@ apiRouter.post('/v1/users/:userId/notify', function(req, res) {
 apiRouter.get('/v1/users/:userId/projects', function(req, res) {
   const userId = req.params.userId;
   User.findById(userId, (err, user) => {
-    if (err) {
+    if (err || !user) {
       console.error(err);
-      // Handle error here
+      res.status(400).send({ error: 'Cannot find user' });
+      return;
     }
-    res.json({
+    res.status(200).json({
       projects: user.projects,
     });
   });
@@ -221,33 +300,71 @@ apiRouter.get('/v1/users/:userId/projects', function(req, res) {
 //PROJECT API
 
  /**
- * Get the information of a single project
+ * Create a new project
  */
-apiRouter.get('/v1/projects/:projectId', function(req, res) {
-  const projectId = req.params.userId;
-  Project.findById(userId, (err, project) => {
+apiRouter.post('/v1/projects', function(req, res) {
+  const projectData = req.body;
+  Project.create(projectData, function (err, project) {
     if (err) {
       console.error(err);
-      // Handle error here
+      res.status(400).json({ error: "Failed to create user" });
+      return;
+    } else {
+      res.status(200).json({ project: project });
     }
-    res.json({
-      project: project,
-    });
   });
 });
 
  /**
- * Create a new project
+ * Get the information of a single project
  */
-apiRouter.post('/v1/projects/:projectId', function(req, res) {
+apiRouter.get('/v1/projects/:projectId', function(req, res) {
+  try {
+    const projectId = req.params.projectId;
+    Project.findById(projectId, (err, project) => {
+      if (err || !project) {
+        console.error(err);
+        res.status(404).json({ error: 'Cannot find proejct' })
+        return;
+      }
+      res.status(200).json({ project: project });
+    });
+  } catch (err) {
+    res.status(400).json({ error: err });
+  }
+});
 
+/**
+ * Updates the information for a user
+ */
+apiRouter.patch('/v1/projects/:projectId', function(req, res) {
+  Project.findOneAndUpdate( {_id: req.params.projectId}, { $set: req.body }, { new: true }, function(err, project) {
+    if (err || !project) {
+      console.error(err);
+      res.status(404).json({ error: 'Project not found' });
+      return;
+    }
+    res.status(200).send({ project: project });
+  });
 });
 
  /**
  * Notify all users involved in a project
  */
-apiRouter.get('/v1/projects/:projectId/notify', function(req, res) {
-
+apiRouter.post('/v1/notify', function(req, res) {
+  const apiKey = req.body.apiKey;
+  const message = req.body.message;
+  // Find user via api key
+  Project.findOne({ apiKey: req.body.apiKey }, function(err, project) {
+    if (err || !project) {
+      console.error(err);
+      res.status(404).json({ error: 'Cannot find project' });
+      return;
+    }
+    project.notify(message);
+    // Project.notify should be async, should wait for response from project.notify
+    res.status(200).send({ message: 'Message sent' }); 
+  })
 });
 
 

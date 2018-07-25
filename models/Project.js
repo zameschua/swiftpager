@@ -17,46 +17,32 @@ const ProjectSchema = new Schema({
       required: false,
     }
   }],
-  logs: [{
-    message: {
-      type: String,
-      required: true,
-      default: "",
-    },
-    timestamp: {
-      type: Date,
-      required: true,
-      default: Date.now,
-    }
-  }],
   apiKey: {
     type: String,
     unique: true,
   }
-}, { _id : false });
+});
 
 // -------------------- Methods ----------------------
-ProjectSchema.methods.log = function(message) {
-  const log = {
+/**
+ * Async method!
+ * @param {} message 
+ */
+ProjectSchema.methods.notify = function(message) {
+  const notification = {
     message: message,
     timestamp: Date.now(),
   }
-  this.createLog(log);
-  this.sendLog(log);
-}
-
-ProjectSchema.methods.createLog = function(log) {
-  this.logs.push(log);
-  // THIS IS NOT WORKING
-};
-
-ProjectSchema.methods.sendLog = function(log) {
   this.users.forEach((projectUser) => {
     const User = require('./User.js');
-    User.findOne({_id: projectUser.userId}, (err, user) => {
-      if (err) console.log(err);
+    User.findById(projectUser.userId, (err, user) => {
+      if (err || !user) {
+        console.error(err, 'Cannot find user!');
+        return err;
+      }
       projectUser.services.forEach((service) => {
-        user.sendLog(service, log);
+        console.log(service);
+        user.notify(service, notification);
       });
     })
   });

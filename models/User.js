@@ -5,6 +5,7 @@ const Project = require('./Project');
 const emailService = require('../utils/emailService');
 
 const UserSchema = new Schema({
+  // TODO: Split into auth / profile
   emailAddress: {
     type: String,
     unique: true,
@@ -19,17 +20,17 @@ const UserSchema = new Schema({
     telegram: {
       username: {
         type: String,
-        default: "",
+        default: '',
       },
       id: {
         type: String,
-        default: "",
+        default: ''
       },
     },
     email: {
       emailAddress: {
         type: String,
-        default: "",
+        default: '',
       },
     },
   },
@@ -38,7 +39,6 @@ const UserSchema = new Schema({
       projectId: mongoose.Schema.Types.ObjectId,
       // isModerator?
     }],
-    _id: false,
   },
 });
 
@@ -46,30 +46,6 @@ const UserSchema = new Schema({
 //hashing a password before saving it to the database
 UserSchema.pre('save', function(next) {
   const user = this;
-  
-  this.services.email.emailAddress = this.emailAddress;
-
-  const projectData = {
-    users: [{
-      userId: this._id,
-      services: [],
-    }],
-    logs: [],
-    apiKey: "",
-  }
-  // Create the user's default project
-  Project.create(projectData, function (err, project) {
-    if (err) {
-      // HANDLE ERRORS HERE LATER
-      console.error(err);
-      return err;
-    } else {
-      user.projects = [{
-        projectId: project._id,
-      }];
-      user.save();
-    }
-  });
 
   // Hash the password
   bcrypt.hash(user.password, 10, function (err, hash) {
@@ -90,35 +66,35 @@ UserSchema.methods.getProjects = function() {
   return this.projects.forEach((projectId) => Project.getProjectById(projectId));
 }
 
-UserSchema.methods.sendLog = function(service, log) {
-  console.log(log);
-  if (service === "telegram") {
-    this.sendTelegramLog(log);
-  } else if (service === "email") {
-    this.sendEmailLog(log);
+UserSchema.methods.notify = function(service, notification) {
+  if (service === 'telegram') {
+    this.sendTelegramNotification(notification);
+  } else if (service === 'email') {
+    this.sendEmailNotification(notification);
   }
 }
 
-UserSchema.methods.sendTelegramLog = function(log) {
-  const messageToSend = `${new Date(log.timestamp).toTimeString()}: ${log.message}`
+UserSchema.methods.sendTelegramNotification = function(notification) {
+  const messageToSend = `${new Date(notification.timestamp).toTimeString()}: ${notification.message}`
   const bot = require('../utils/telegramBotService');
   bot.sendMessage(this.services.telegram.id, messageToSend);
 }
 
-UserSchema.methods.sendEmailLog = function(log) {
+UserSchema.methods.sendEmailNotification = function(notification) {
   const mailOptions = {
     from: process.env.GMAIL_ADDRESS,
     to: this.services.email.emailAddress,
-    subject: "Log from Lumberjack",
-    text: log.message,
+    subject: "Log from notification service thingy",
+    text: notification.message,
   };
   
   emailService.sendMail(mailOptions, function(error, info){
     if (error) {
-      console.log(error);
-    } else {
-      console.log('Email sent: ' + info.response);
+      console.error(error);
+      return false;
     }
+    console.log('Email sent: ' + info.response);
+    return true;
   });
 }
 
