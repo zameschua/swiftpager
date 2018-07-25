@@ -15,9 +15,10 @@ const ProjectSchema = new Schema({
       type: [String],
       unique: true,
       required: false,
-    }
+    },
+    _id: false
   }],
-  apiKey: {
+  apiToken: {
     type: String,
     unique: true,
   }
@@ -48,36 +49,24 @@ ProjectSchema.methods.notify = function(message) {
   });
 }
 
-/**
- * Allow user to update account settings
- * Object should only have 1 key (Might be changed later to support more keys)
- * 
- * {
- *  emailAddress: newEmailAddress
- * }
- * 
- * @returns updatedUser upon successful update
- */
-ProjectSchema.methods.update = function(updateObject) {
-  const key = Object.keys(updateObject)[0];
-  const value = updateObject[key];
-  this[key] = value;
+ProjectSchema.methods.revokeApiToken = function() {
+  this.apiToken = "";
+  this.save();
+}
 
-  this.save(function (err, updatedProject) {
-    if (err) return err;
-    return updatedProject;
-  });
+ProjectSchema.methods.issueApiToken = function() {
+  const apiToken = bcrypt.hashSync(this._id + Date.now().toString(), 10);
+  this.apiToken = apiToken;
+  this.save();
 }
 
 // ------------------ Static Methods --------------------
-ProjectSchema.statics.getProjectById = function(id) {
-  return this.find({ _id: id });
-}
+
 
 // ------------------- Pre hook ------------------------
 ProjectSchema.pre('save', function(next) {
-  const apiKey = bcrypt.hashSync(this._id + Date.now().toString(), 10);
-  this.apiKey = apiKey;
+  const apiToken = bcrypt.hashSync(this._id + Date.now().toString(), 10);
+  this.apiToken = apiToken;
   next();
 });
 

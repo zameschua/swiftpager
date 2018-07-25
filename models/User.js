@@ -5,16 +5,27 @@ const Project = require('./Project');
 const emailService = require('../utils/emailService');
 
 const UserSchema = new Schema({
-  // TODO: Split into auth / profile
-  emailAddress: {
-    type: String,
-    unique: true,
-    required: true,
-    trim: true
-  },
-  password: {
-    type: String,
-    required: true,
+  auth: {
+    emailAddress: {
+      type: String,
+      unique: true,
+      required: true,
+      trim: true
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    lastSignIn: {
+      type: Date,
+      default: Date.now(),
+      required: true,
+    },
+    created: {
+      type: Date,
+      default: Date.now(),
+      required: true,
+    }
   },
   services: {
     telegram: {
@@ -34,12 +45,11 @@ const UserSchema = new Schema({
       },
     },
   },
-  projects: {
-    type: [{
-      projectId: mongoose.Schema.Types.ObjectId,
-      // isModerator?
-    }],
-  },
+  projects: [{
+    projectId: mongoose.Schema.Types.ObjectId,
+    // isModerator?
+    _id: false, // Stop mongoose from automatically generating objectId for subdocument
+  }],
 });
 
 // ------------------ Pre Hook -------------------
@@ -48,11 +58,11 @@ UserSchema.pre('save', function(next) {
   const user = this;
 
   // Hash the password
-  bcrypt.hash(user.password, 10, function (err, hash) {
+  bcrypt.hash(user.auth.password, 10, function (err, hash) {
     if (err) {
-        return next(err);
+      return next(err);
     }
-    user.password = hash;
+    user.auth.password = hash;
     next();
   });
 });
@@ -84,7 +94,7 @@ UserSchema.methods.sendEmailNotification = function(notification) {
   const mailOptions = {
     from: process.env.GMAIL_ADDRESS,
     to: this.services.email.emailAddress,
-    subject: "Log from notification service thingy",
+    subject: "Notification from notification service thingy",
     text: notification.message,
   };
   

@@ -1,11 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const subdomain = require('express-subdomain');
-const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const path = require('path');
-const bot = require('./utils/telegramBotService.js');
 const User = require('./models/User.js');
 const Project = require('./models/Project.js');
 
@@ -27,12 +25,14 @@ passport.use(new LocalStrategy({
   passwordField: 'password'
   },
   function(emailAddress, password, done) {
-    User.findOne({ emailAddress: emailAddress }, function (err, user) {
+    User.findOne({ 'auth.emailAddress': emailAddress }, function (err, user) {
       /*
       if (err) { return done(err); }
       if (!user) { return done(null, false); }
       if (!user.verifyPassword(password)) { return done(null, false); }
       */
+      user.auth.lastSignIn = new Date();
+      user.save();
       return done(null, user);
     });
   }
@@ -103,8 +103,7 @@ appRouter.post('/auth/signin',
     res.redirect('/');
 });
 
-// TODO: Change to POST
-appRouter.get('/auth/signout', function(req, res){
+appRouter.post('/auth/signout', function(req, res){
   req.logout();
   res.redirect('http://www.lvh.me');
 });
@@ -114,8 +113,10 @@ appRouter.post('/auth/register', function(req, res) {
     req.body.password &&
     req.body.password === req.body.passwordConfirm) {
     const userData = {
-      emailAddress: req.body.emailAddress,
-      password: req.body.password,
+      auth: {
+        emailAddress: req.body.emailAddress,
+        password: req.body.password,
+      },
       services: {
         email: {
           emailAddress: req.body.emailAddress,
@@ -134,7 +135,7 @@ appRouter.post('/auth/register', function(req, res) {
           userId: user._id,
           services: ['email'],
         }],
-        apiKey: '',
+        apiToken: '',
       }
       // Create the user's default project
       Project.create(projectData, function (err, project) {
@@ -163,11 +164,10 @@ appRouter.get('/', appSignedIn,  function(req, res, next) {
     }
     
     res.render('app.html', {
-      email: req.user.emailAddress,
+      email: req.user.auth.emailAddress,
       telegramUsername: req.user.services.telegram.username ? "@" + req.user.services.telegram.username : "Seems like you haven't set up your Telegram account yet!",
-      apiKey: project.apiKey,
+      apiToken: project.apiToken,
     });
-
   });
 });
 
@@ -189,8 +189,10 @@ apiRouter.post('/v1/users', function(req, res) {
     req.body.password &&
     req.body.password === req.body.passwordConfirm) {
     const userData = {
-      emailAddress: req.body.emailAddress,
-      password: req.body.password,
+      auth: {
+        emailAddress: req.body.emailAddress,
+        password: req.body.password,
+      },
       services: {
         email: {
           emailAddress: req.body.emailAddress,
@@ -209,7 +211,7 @@ apiRouter.post('/v1/users', function(req, res) {
           userId: user._id,
           services: [],
         }],
-        apiKey: '',
+        apiToken: '',
       }
       // Create the user's default project
       Project.create(projectData, function (err, project) {
@@ -234,13 +236,12 @@ apiRouter.post('/v1/users', function(req, res) {
  * Gets the information for a single user
  */
 apiRouter.get('/v1/users/:userId', function(req, res) {
-  User.findById(req.params.userId, function(err, user) {
+  User.findById(req.params.userId, '-auth').exec(function(err, user) {
     if (err || !user) {
       console.error(err);
       res.status(404).json({ error: 'User not found' });
       return;
     }
-
     res.status(200).json({ user: user });
   });
 });
@@ -248,7 +249,6 @@ apiRouter.get('/v1/users/:userId', function(req, res) {
 /**
  * Updates the information for a user
  */
-// TODO: Limit the access to password
 apiRouter.patch('/v1/users/:userId', function(req, res) {
   User.findOneAndUpdate( {_id: req.params.userId}, { $set: req.body }, { new: true }, function(err, user) {
     if (err || !user) {
@@ -264,10 +264,10 @@ apiRouter.patch('/v1/users/:userId', function(req, res) {
  * Gets the default project for the user, then sends an alert
  */
 apiRouter.post('/v1/users/:userId/notify', function(req, res) {
-  const apiKey = req.body.apiKey;
+  const apiToken = req.body.apiToken;
   const message = req.body.message;
   // Find user via api key
-  Project.findOne({ apiKey: apiKey }, function(err, project) {
+  Project.findOne({ apiToken: apiToken }, function(err, project) {
     if (err || !project) {
       console.error(err);
       res.status(404).json({ error: 'Cannot find project' });
@@ -348,14 +348,44 @@ apiRouter.patch('/v1/projects/:projectId', function(req, res) {
   });
 });
 
+/**
+ * Updates the information for a user
+ */
+apiRouter.patch('/v1/projects/:projectId/revokeApiToken', function(req, res) {
+  Project.findById(req.params.projectId, function(err, project) {
+    if (err || !project) {
+      console.error(err);
+      res.status(404).json({ error: 'Project not found' });
+      return;
+    }
+    project.revokeApiToken();
+    res.status(200).send({ project: project });
+  });
+});
+
+/**
+ * Updates the information for a user
+ */
+apiRouter.patch('/v1/projects/:projectId/issueApiToken', function(req, res) {
+  Project.findById(req.params.projectId, function(err, project) {
+    if (err || !project) {
+      console.error(err);
+      res.status(404).json({ error: 'Project not found' });
+      return;
+    }
+    project.issueApiToken();
+    res.status(200).send({ project: project });
+  });
+});
+
  /**
  * Notify all users involved in a project
  */
 apiRouter.post('/v1/notify', function(req, res) {
-  const apiKey = req.body.apiKey;
+  const apiToken = req.body.apiToken;
   const message = req.body.message;
   // Find user via api key
-  Project.findOne({ apiKey: req.body.apiKey }, function(err, project) {
+  Project.findOne({ apiToken: req.body.apiToken }, function(err, project) {
     if (err || !project) {
       console.error(err);
       res.status(404).json({ error: 'Cannot find project' });
