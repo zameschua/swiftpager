@@ -6,7 +6,7 @@ const User = require('./User.js');
 
 const ProjectSchema = new Schema({
   users: [{
-    userId: {
+    user_id: {
       type: String,
       unique: true,
       required: true,
@@ -16,11 +16,14 @@ const ProjectSchema = new Schema({
       unique: true,
       required: false,
     },
-    _id: false
+    is_moderator: {
+      type: Boolean,
+      required: true,
+    },
+    _id: false, // Stop mongoose from generating id for subdocuments
   }],
-  apiToken: {
+  api_key: {
     type: String,
-    unique: true,
   }
 });
 
@@ -49,14 +52,14 @@ ProjectSchema.methods.notify = function(message) {
   });
 }
 
-ProjectSchema.methods.revokeApiToken = function() {
-  this.apiToken = "";
+ProjectSchema.methods.revokeApiKey = function() {
+  this.api_key = null;
   this.save();
 }
 
-ProjectSchema.methods.issueApiToken = function() {
-  const apiToken = bcrypt.hashSync(this._id + Date.now().toString(), 10);
-  this.apiToken = apiToken;
+ProjectSchema.methods.issueApiKey = function() {
+  const apiKey = bcrypt.hashSync(this._id + Date.now().toString(), 10);
+  this.api_key = apiKey;
   this.save();
 }
 
@@ -64,12 +67,6 @@ ProjectSchema.methods.issueApiToken = function() {
 
 
 // ------------------- Pre hook ------------------------
-ProjectSchema.pre('save', function(next) {
-  const apiToken = bcrypt.hashSync(this._id + Date.now().toString(), 10);
-  this.apiToken = apiToken;
-  next();
-});
-
 
 const Project = mongoose.model('Project', ProjectSchema);
 module.exports = Project;

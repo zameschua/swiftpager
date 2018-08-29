@@ -6,7 +6,7 @@ const emailService = require('../utils/emailService');
 
 const UserSchema = new Schema({
   auth: {
-    emailAddress: {
+    email_address: {
       type: String,
       unique: true,
       required: true,
@@ -16,7 +16,7 @@ const UserSchema = new Schema({
       type: String,
       required: true,
     },
-    lastSignIn: {
+    last_sign_in: {
       type: Date,
       default: Date.now(),
       required: true,
@@ -39,15 +39,15 @@ const UserSchema = new Schema({
       },
     },
     email: {
-      emailAddress: {
+      email_address: {
         type: String,
         default: '',
       },
     },
   },
   projects: [{
-    projectId: mongoose.Schema.Types.ObjectId,
-    // isModerator?
+    project_id: mongoose.Schema.Types.ObjectId,
+    is_moderator: Boolean,
     _id: false, // Stop mongoose from automatically generating objectId for subdocument
   }],
 });

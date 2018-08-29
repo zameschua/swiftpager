@@ -21,17 +21,17 @@ db.once('open', function () {
 });
 
 passport.use(new LocalStrategy({
-  usernameField: 'emailAddress',
+  usernameField: 'email_address',
   passwordField: 'password'
   },
   function(emailAddress, password, done) {
-    User.findOne({ 'auth.emailAddress': emailAddress }, function (err, user) {
+    User.findOne({ 'auth.email_address': emailAddress }, function (err, user) {
       /*
       if (err) { return done(err); }
       if (!user) { return done(null, false); }
       if (!user.verifyPassword(password)) { return done(null, false); }
       */
-      user.auth.lastSignIn = new Date();
+      user.auth.last_sign_in = new Date();
       user.save();
       return done(null, user);
     });
@@ -114,35 +114,36 @@ appRouter.post('/auth/register', function(req, res) {
     req.body.password === req.body.passwordConfirm) {
     const userData = {
       auth: {
-        emailAddress: req.body.emailAddress,
+        email_address: req.body.emailAddress,
         password: req.body.password,
       },
       services: {
         email: {
-          emailAddress: req.body.emailAddress,
+          email_address: req.body.emailAddress,
         }
       }
     }
     User.create(userData, function (err, user) {
       if (err) {
-        console.error(err);
+        console.error(err.stack);
         res.status(400).json({ error: "Failed to create user" });
         return;
       }
 
       const projectData = {
         users: [{
-          userId: user._id,
+          user_id: user._id,
           services: ['email'],
+          is_moderator: true,
         }],
-        apiToken: '',
+        api_key: '',
       }
       // Create the user's default project
       Project.create(projectData, function (err, project) {
         if (err) {
-          console.error(err);
+          console.error(err.stack);
           res.status(200).json({ error: 'Failed to create default project' });
-          return err;
+          return;
         } else {
           user.projects = [{
             projectId: project._id,
@@ -159,14 +160,14 @@ appRouter.post('/auth/register', function(req, res) {
 appRouter.get('/', appSignedIn,  function(req, res, next) {
   Project.findOne({ _id: req.user.projects[0].projectId}, function(err, project) {
     if (err) {
-      console.error(err);
+      console.error(err.stack);
       res.status(404).json({ error: 'Project not found' });
     }
     
     res.render('app.html', {
       email: req.user.auth.emailAddress,
       telegramUsername: req.user.services.telegram.username ? "@" + req.user.services.telegram.username : "Seems like you haven't set up your Telegram account yet!",
-      apiToken: project.apiToken,
+      api_key: project.apiKey,
     });
   });
 });
@@ -185,60 +186,67 @@ const apiRouter = express.Router();
  */
 apiRouter.post('/v1/users', function(req, res) {
   // Handle validation here
-  if (req.body.emailAddress &&
-    req.body.password &&
-    req.body.password === req.body.passwordConfirm) {
-    const userData = {
-      auth: {
-        emailAddress: req.body.emailAddress,
-        password: req.body.password,
-      },
-      services: {
-        email: {
-          emailAddress: req.body.emailAddress,
-        }
+  if (!req.body.auth || (!req.body.auth.email_address || !req.body.auth.password)) {
+    res.status(400).json({ error: 'Expected email_address and password in request body' });
+    return;
+  }
+
+  const userData = {
+    auth: {
+      email_address: req.body.auth.email_address,
+      password: req.body.auth.password,
+    },
+    services: {
+      email: {
+        email_address: req.body.email_address,
       }
     }
-    User.create(userData, function (err, user) {
-      if (err) {
-        console.error(err);
-        res.status(400).json({ error: "Failed to create user" });
-        return;
-      }
-
-      const projectData = {
-        users: [{
-          userId: user._id,
-          services: [],
-        }],
-        apiToken: '',
-      }
-      // Create the user's default project
-      Project.create(projectData, function (err, project) {
-        if (err) {
-          console.error(err);
-          res.status(200).json({ error: 'Failed to create default project' });
-          return err;
-        } else {
-          user.projects = [{
-            projectId: project._id,
-          }];
-          user.save();
-        }
-      });
-
-      res.status(200).json({ user: user });
-    });
   }
+  User.create(userData, function (err, user) {
+    if (err) {
+      console.error(err.stack);
+      res.status(400).json({ error: 'Failed to create user' });
+      return;
+    }
+
+    const projectData = {
+      users: [{
+        user_id: user._id,
+        services: [],
+        is_moderator: true,
+      }],
+      api_key: '',
+    }
+    // Create the user's default project
+    Project.create(projectData, function (err, project) {
+      if (err) {
+        console.error(err.stack);
+        res.status(200).json({ error: 'Failed to create default project' });
+        return;
+      } else {
+        project.issueApiKey();
+        user.projects = [{
+          project_id: project._id,
+          is_moderator: true,
+        }];
+        user.save();
+        res.status(200).json({ user: user });
+      }
+    });
+  });
 });
 
 /**
  * Gets the information for a single user
  */
 apiRouter.get('/v1/users/:userId', function(req, res) {
-  User.findById(req.params.userId, '-auth').exec(function(err, user) {
-    if (err || !user) {
-      console.error(err);
+  User.findById(req.params.userId, '-auth.password -__v').exec(function(err, user) {
+    if (err) {
+      console.error(err.stack);
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    if (!user) {
       res.status(404).json({ error: 'User not found' });
       return;
     }
@@ -252,32 +260,46 @@ apiRouter.get('/v1/users/:userId', function(req, res) {
 apiRouter.patch('/v1/users/:userId', function(req, res) {
   User.findOneAndUpdate( {_id: req.params.userId}, { $set: req.body }, { new: true }, function(err, user) {
     if (err || !user) {
-      console.error(err);
+      console.error(err.stack);
       res.status(404).json({ error: 'User not found' });
       return;
     }
-    res.status(200).send({ user: user });
+    res.status(200).json({ user: user });
   });
 });
 
 /**
- * Gets the default project for the user, then sends an alert
+ * Updates the information for a user
  */
-apiRouter.post('/v1/users/:userId/notify', function(req, res) {
-  const apiToken = req.body.apiToken;
-  const message = req.body.message;
-  // Find user via api key
-  Project.findOne({ apiToken: apiToken }, function(err, project) {
-    if (err || !project) {
-      console.error(err);
-      res.status(404).json({ error: 'Cannot find project' });
+apiRouter.put('/v1/users/:userId', function(req, res) {
+  User.findOneAndUpdate( {_id: req.params.userId}, { $set: req.body }, { new: true }, function(err, user) {
+    if (err || !user) {
+      console.error(err.stack);
+      res.status(404).json({ error: 'User not found' });
       return;
     }
-    project.notify(message);
-    // Project.notify should be async, should wait for response from project.notify
-    res.status(200).json({ message: 'Message sent!' });
-  })
+    res.status(200).json({ user: user });
+  });
 });
+
+/**
+ * Deletes a user
+ * NOT IN USE FOR NOW
+ */
+/*
+apiRouter.delete('/v1/users/:userId', function(req, res) {
+  User.deleteOne( {_id: req.params.userId}, function(err, user) {
+    if (err || !user) {
+      console.error(err.stack);
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    // Go through all projects and delete if the user is the only one on the project
+    // If there is more than one project, need to make another user the moderator
+    res.status(204).end();
+  });
+});
+*/
 
 /**
  * Gets a list of projects that the user belongs to
@@ -286,8 +308,8 @@ apiRouter.get('/v1/users/:userId/projects', function(req, res) {
   const userId = req.params.userId;
   User.findById(userId, (err, user) => {
     if (err || !user) {
-      console.error(err);
-      res.status(400).send({ error: 'Cannot find user' });
+      console.error(err.stack);
+      res.status(404).json({ error: 'Cannot find user' });
       return;
     }
     res.status(200).json({
@@ -301,19 +323,22 @@ apiRouter.get('/v1/users/:userId/projects', function(req, res) {
 
  /**
  * Create a new project
+ * TODO: Need to add user to the project, and add project to the user
  */
+/*
 apiRouter.post('/v1/projects', function(req, res) {
   const projectData = req.body;
   Project.create(projectData, function (err, project) {
     if (err) {
-      console.error(err);
-      res.status(400).json({ error: "Failed to create user" });
+      console.error(err.stack);
+      res.status(400).json({ error: 'Failed to create project' });
       return;
     } else {
       res.status(200).json({ project: project });
     }
   });
 });
+*/
 
  /**
  * Get the information of a single project
@@ -321,10 +346,10 @@ apiRouter.post('/v1/projects', function(req, res) {
 apiRouter.get('/v1/projects/:projectId', function(req, res) {
   try {
     const projectId = req.params.projectId;
-    Project.findById(projectId, (err, project) => {
+    Project.findById(projectId, '-__v', (err, project) => {
       if (err || !project) {
-        console.error(err);
-        res.status(404).json({ error: 'Cannot find proejct' })
+        console.error(err.stack);
+        res.status(404).json({ error: 'Cannot find project' })
         return;
       }
       res.status(200).json({ project: project });
@@ -335,12 +360,12 @@ apiRouter.get('/v1/projects/:projectId', function(req, res) {
 });
 
 /**
- * Updates the information for a user
+ * Updates the information for a project
  */
 apiRouter.patch('/v1/projects/:projectId', function(req, res) {
   Project.findOneAndUpdate( {_id: req.params.projectId}, { $set: req.body }, { new: true }, function(err, project) {
     if (err || !project) {
-      console.error(err);
+      console.error(err.stack);
       res.status(404).json({ error: 'Project not found' });
       return;
     }
@@ -349,51 +374,79 @@ apiRouter.patch('/v1/projects/:projectId', function(req, res) {
 });
 
 /**
- * Updates the information for a user
+ * Updates the information for a project
  */
-apiRouter.patch('/v1/projects/:projectId/revokeApiToken', function(req, res) {
-  Project.findById(req.params.projectId, function(err, project) {
+apiRouter.put('/v1/projects/:projectId', function(req, res) {
+  Project.findOneAndUpdate( {_id: req.params.projectId}, { $set: req.body }, { new: true }, function(err, project) {
     if (err || !project) {
-      console.error(err);
-      res.status(404).json({ error: 'Project not found' });
+      console.error(err.stack);
+      res.status(404).json({ error: 'Project not found, ' + err.message });
       return;
     }
-    project.revokeApiToken();
     res.status(200).send({ project: project });
   });
 });
 
 /**
- * Updates the information for a user
+ * Gets the API key for a project
  */
-apiRouter.patch('/v1/projects/:projectId/issueApiToken', function(req, res) {
+apiRouter.get('/v1/projects/:projectId/key', function(req, res) {
   Project.findById(req.params.projectId, function(err, project) {
     if (err || !project) {
-      console.error(err);
+      console.error(err.stack);
       res.status(404).json({ error: 'Project not found' });
       return;
     }
-    project.issueApiToken();
-    res.status(200).send({ project: project });
+    res.status(200).send({ api_key: project.api_key });
+  });
+});
+
+/**
+ * Issues a new apiKey for the specified project
+ */
+apiRouter.post('/v1/projects/:projectId/key', function(req, res) {
+  Project.findById(req.params.projectId, function(err, project) {
+    if (err || !project) {
+      console.error(err.stack);
+      res.status(404).json({ error: 'Project not found' });
+      return;
+    }
+    project.issueApiKey();
+    res.status(200).send({ api_key: project.api_key });
+  });
+});
+
+/**
+ * Revokes the apiKey for the specified project
+ */
+apiRouter.delete('/v1/projects/:projectId/key', function(req, res) {
+  Project.findById(req.params.projectId, function(err, project) {
+    if (err || !project) {
+      console.error(err.stack);
+      res.status(404).json({ error: 'Project not found' });
+      return;
+    }
+    project.revokeApiKey();
+    res.status(204).end();
   });
 });
 
  /**
  * Notify all users involved in a project
+ * TODO: Should put the apy key in request.headers.authorization
  */
 apiRouter.post('/v1/notify', function(req, res) {
-  const apiToken = req.body.apiToken;
+  const apiKey = req.body.apiKey;
   const message = req.body.message;
   // Find user via api key
-  Project.findOne({ apiToken: req.body.apiToken }, function(err, project) {
+  Project.findOne({ api_key: req.body.apiKey }, function(err, project) {
     if (err || !project) {
-      console.error(err);
+      console.error(err.stack);
       res.status(404).json({ error: 'Cannot find project' });
       return;
     }
     project.notify(message);
-    // Project.notify should be async, should wait for response from project.notify
-    res.status(200).send({ message: 'Message sent' }); 
+    res.status(204).end(); 
   })
 });
 
