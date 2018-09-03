@@ -1,7 +1,7 @@
 {
-  "name": "airlog",
+  "name": "swiftpager",
   "version": "0.0.1",
-  "description": "Hassle-free pushing of application logs to your email or phone",
+  "description": "Easy notifications to the services you already use",
   "main": "app.js",
   "scripts": {
     "start": "node app.js"
@@ -13,6 +13,7 @@
     "dotenv": "^5.0.1",
     "ejs": "^2.5.9",
     "express": "^4.16.3",
+    "express-bearer-token": "^2.2.0",
     "express-session": "^1.15.6",
     "express-subdomain": "^1.0.5",
     "mongoose": "^5.0.17",

@@ -53,7 +53,8 @@ const UserSchema = new Schema({
 });
 
 // ------------------ Pre Hook -------------------
-//hashing a password before saving it to the database
+// Hash a password before saving it to the database
+// TODO: Shift this to app.js
 UserSchema.pre('save', function(next) {
   const user = this;
 
@@ -113,7 +114,7 @@ UserSchema.methods.sendEmailNotification = function(notification) {
  * Object should only have 1 key (Might be changed later to support more keys)
  * 
  * {
- *  emailAddress: newEmailAddress
+ *  email_address: newEmailAddress
  * }
  * 
  * @returns updatedUser upon successful update

@@ -26,13 +26,12 @@ passport.use(new LocalStrategy({
   },
   function(emailAddress, password, done) {
     User.findOne({ 'auth.email_address': emailAddress }, function (err, user) {
-      /*
-      if (err) { return done(err); }
-      if (!user) { return done(null, false); }
-      if (!user.verifyPassword(password)) { return done(null, false); }
-      */
+      if (err) { return done(err) }
+      if (!user) { return done(null, false, { message: 'Incorrect email or password!' }) }
+      
       user.auth.last_sign_in = new Date();
       user.save();
+      
       return done(null, user);
     });
   }
@@ -40,12 +39,13 @@ passport.use(new LocalStrategy({
 
 // Helper function to check if user is signed in
 function appSignedIn(req, res, next) {
-  if (req.user) {
-      next();
+  if (req.isAuthenticated) {
+    return next();
   } else {
-      res.redirect('/signin');
+    res.redirect('/signin');
   }
 }
+
 
 // Helper function to check if user is signed in
 function apiSignedIn(req, res, next) {
@@ -73,14 +73,19 @@ app.engine('html', require('ejs').renderFile);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(require('cookie-parser')());
 
+// body-parser
 const bodyParser = require('body-parser')
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(require('express-session')({ secret: 'keyboard cat', resave: true, saveUninitialized: true }));
 
+// express-bearer-token
+const bearerToken = require('express-bearer-token');
+app.use(bearerToken());
+
+// passport local
 app.use(passport.initialize());
 app.use(passport.session());
-
 
 /********************************************************************
  * app.domain.com 
@@ -93,33 +98,36 @@ appRouter.get('/signin', function(req, res) {
 
 appRouter.get('/register', function (req, res) {
   res.render('register.html');
-})
-
-appRouter.post('/auth/signin',
-  passport.authenticate('local', { failureRedirect: '/signin' }),
-  function(req, res) {
-    // If this function gets called, authentication was successful.
-    // `req.user` contains the authenticated user.
-    res.redirect('/');
 });
 
-appRouter.post('/auth/signout', function(req, res){
+appRouter.post('/signin', function(req, res, next) {  
+  passport.authenticate("local", function(err, user, info) {
+    if (user) {
+      res.redirect('/');
+    } else {
+      res.redirect('/signin');
+    }
+
+  })(req,res,next); 
+});
+
+appRouter.get('/signout', function(req, res){
   req.logout();
   res.redirect('http://www.lvh.me');
 });
 
-appRouter.post('/auth/register', function(req, res) {
-  if (req.body.emailAddress &&
+appRouter.post('/register', function(req, res) {
+  if (req.body.email_address &&
     req.body.password &&
-    req.body.password === req.body.passwordConfirm) {
+    req.body.password === req.body.password_confirm) {
     const userData = {
       auth: {
-        email_address: req.body.emailAddress,
+        email_address: req.body.email_address,
         password: req.body.password,
       },
       services: {
         email: {
-          email_address: req.body.emailAddress,
+          email_address: req.body.email_address,
         }
       }
     }
@@ -146,7 +154,7 @@ appRouter.post('/auth/register', function(req, res) {
           return;
         } else {
           user.projects = [{
-            projectId: project._id,
+            project_id: project._id,
           }];
           user.save();
         }
@@ -158,18 +166,7 @@ appRouter.post('/auth/register', function(req, res) {
 
 // User only can access this endpoint if they're signed in
 appRouter.get('/', appSignedIn,  function(req, res, next) {
-  Project.findOne({ _id: req.user.projects[0].projectId}, function(err, project) {
-    if (err) {
-      console.error(err.stack);
-      res.status(404).json({ error: 'Project not found' });
-    }
-    
-    res.render('app.html', {
-      email: req.user.auth.emailAddress,
-      telegramUsername: req.user.services.telegram.username ? "@" + req.user.services.telegram.username : "Seems like you haven't set up your Telegram account yet!",
-      api_key: project.apiKey,
-    });
-  });
+  res.render('app.html');
 });
 
 app.use(subdomain('app', appRouter));

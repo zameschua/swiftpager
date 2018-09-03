@@ -24,7 +24,7 @@
           <div class="card">
           <div class="card-body">
             <h3 class="text-center mt-3 mb-5 ml-auto">Register!</h3>
-            <form action="/auth/register" method="post">
+            <form action="/register" method="post">
               <div class="row">
                 <div class="form-group col-md-12">
                   <div class="input-group input-group-seamless">
@@ -33,7 +33,7 @@
                         <i class="fa fa-envelope"></i>
                       </span>
                     </span>
-                    <input type="email" name="emailAddress" class="form-control" id="form-email" placeholder="Email">
+                    <input type="email" name="email_address" class="form-control" id="email" placeholder="Email">
                   </div>
                 </div>
               </div>
@@ -45,7 +45,7 @@
                           <i class="fa fa-lock"></i>
                         </span>
                     </span>
-                    <input type="password" name="password" class="form-control" id="form-password" placeholder="Password">
+                    <input type="password" name="password" class="form-control" id="password" placeholder="Password">
                   </div>
                 </div>
               </div>
@@ -57,7 +57,7 @@
                             <i class="fa fa-lock"></i>
                           </span>
                       </span>
-                      <input type="password" name="passwordConfirm" class="form-control" id="form-passwordConfirm" placeholder="Confirm password">
+                      <input type="password" name="password_confirm" class="form-control" id="password_confirm" placeholder="Confirm password">
                     </div>
                   </div>
                 </div>
@@ -73,18 +73,6 @@
   </div>
 
   <!-- JavaScript -->
-  <div id="fb-root"></div>
-  <script>
-    (function (d, s, id) {
-      var js, fjs = d.getElementsByTagName(s)[0];
-      if (d.getElementById(id)) return;
-      js = d.createElement(s);
-      js.id = id;
-      js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10&appId=1662270373824826";
-      fjs.parentNode.insertBefore(js, fjs);
-    }(document, 'script', 'facebook-jssdk'));
-
-  </script>
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
   <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
