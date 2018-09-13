@@ -451,10 +451,23 @@ apiRouter.post('/v1/notify', function(req, res) {
 app.use(subdomain('api', apiRouter));
 // -------------------------------------------------------------
 
+/********************************************************************
+ * www.swiftpager.com
+ ********************************************************************/
+const wwwRouter = express.Router();
 
-app.get('/', function (req, res) {
+// Homepage
+wwwRouter.get('/', function (req, res) {
   res.render('index.html');
 })
+
+// Template for me to play around with
+wwwRouter.get('/template', function (req, res) {
+  res.render('template.html');
+})
+
+app.use(subdomain('www', wwwRouter));
+
 
 app.listen(PORT)
 console.log('Running on http://localhost:' + PORT);
