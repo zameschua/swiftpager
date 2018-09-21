@@ -20,64 +20,49 @@ db.once('open', function () {
   console.log('MongoDB connected!');
 });
 
-passport.use(new LocalStrategy({
+passport.serializeUser(function(user, done) {
+  console.log("Serializing user " + user.auth.email_address);
+  done(null, user.id);
+});
+
+// used to deserialize the user
+passport.deserializeUser(function(id, done) {
+  console.log("Deserializing user " + user.auth.email_address);
+  User.findById(id, function(err, user) {
+      done(err, user);
+  });
+});
+
+passport.use('local', new LocalStrategy({
   usernameField: 'email_address',
-  passwordField: 'password'
+  passwordField: 'password',
+  passReqToCallback: true,
   },
-  function(emailAddress, password, done) {
+  function(req, emailAddress, password, done) {
     User.findOne({ 'auth.email_address': emailAddress }, function (err, user) {
-      if (err) { return done(err) }
+      if (err) { return done(err) };
       if (!user) { return done(null, false, { message: 'Incorrect email or password!' }) }
-      
       user.auth.last_sign_in = new Date();
       user.save();
-      
+
       return done(null, user);
     });
   }
 ));
 
-// Helper function to check if user is signed in
-function appSignedIn(req, res, next) {
-  if (req.isAuthenticated) {
-    return next();
-  } else {
-    res.redirect('/signin');
-  }
-}
-
-
-// Helper function to check if user is signed in
-function apiSignedIn(req, res, next) {
-  if (req.user) {
-      next();
-  } else {
-      res.status(403).json({ error: 'Not signed in' });
-  }
-}
-
-passport.serializeUser(function(user, cb) {
-  cb(null, user.id);
-});
-
-passport.deserializeUser(function(id, cb) {
-  User.findOne({_id: id}, function (err, user) {
-    if (err) { return cb(err); }
-    cb(null, user);
-  });
-});
 
 // App
 const app = express();
 app.engine('html', require('ejs').renderFile);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(require('cookie-parser')());
+app.use(require('express-session')({ secret: 'keyboard cat', resave: true, saveUninitialized: true }));
 
 // body-parser
 const bodyParser = require('body-parser')
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(require('express-session')({ secret: 'keyboard cat', resave: true, saveUninitialized: true }));
+
 
 // express-bearer-token
 const bearerToken = require('express-bearer-token');
@@ -86,6 +71,17 @@ app.use(bearerToken());
 // passport local
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Helper function to check if user is signed in
+function isSignedIn(req, res, next) {
+  setTimeout(() => {
+    if (req.isAuthenticated()) {
+      next();
+    } else {
+      res.status(403).json({ error: 'Not signed in' });
+    }
+  }, 500);
+}
 
 /********************************************************************
  * app.domain.com 
@@ -100,12 +96,20 @@ appRouter.get('/register', function (req, res) {
   res.render('register.html');
 });
 
-appRouter.post('/signin', function(req, res, next) {  
-  passport.authenticate("local", function(err, user, info) {
-    if (user) {
-      res.redirect('/');
+appRouter.post('/signin', function(req, res, next) {
+  passport.authenticate('local', function(err, user, info) {
+    if (err) {
+      console.log("Error when signing in");
+      return next(err)
+    };
+    if (!user) {
+      console.log("User not found in db");
+      res.status(400).json({ error: "Failed to find user in db" });
     } else {
-      res.redirect('/signin');
+      req.logIn(user, function(err) {
+        if (err) { return next(err); }
+        res.status(400).json({ error: "Failed to sign in user" });
+      });
     }
 
   })(req,res,next); 
@@ -165,7 +169,7 @@ appRouter.post('/register', function(req, res) {
 });
 
 // User only can access this endpoint if they're signed in
-appRouter.get('/', appSignedIn,  function(req, res, next) {
+appRouter.get('/', isSignedIn,  function(req, res, next) {
   res.render('app.html');
 });
 
@@ -177,6 +181,26 @@ app.use(subdomain('app', appRouter));
 const apiRouter = express.Router();
 
 // USER API
+/**
+ * Gets the information for the logged in user
+ */
+apiRouter.get('/v1/me', function(req, res) {
+  res.status(200).json({ user: req.user });
+  /*
+  User.findById(123, '-auth.password -__v').exec(function(err, user) {
+    if (err) {
+      console.error(err.stack);
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    res.status(200).json({ user: user });
+  });
+  */
+});
 
 /**
  * Creates a new user
@@ -467,6 +491,7 @@ wwwRouter.get('/template', function (req, res) {
 })
 
 app.use(subdomain('www', wwwRouter));
+app.use(subdomain('/', wwwRouter));
 
 
 app.listen(PORT)
