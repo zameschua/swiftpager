@@ -27,9 +27,9 @@ passport.serializeUser(function(user, done) {
 
 // used to deserialize the user
 passport.deserializeUser(function(id, done) {
-  console.log("Deserializing user " + user.auth.email_address);
   User.findById(id, function(err, user) {
-      done(err, user);
+    console.log("Deserializing user " + user.auth.email_address);
+    done(err, user);
   });
 });
 
@@ -74,13 +74,11 @@ app.use(passport.session());
 
 // Helper function to check if user is signed in
 function isSignedIn(req, res, next) {
-  setTimeout(() => {
-    if (req.isAuthenticated()) {
-      next();
-    } else {
-      res.status(403).json({ error: 'Not signed in' });
-    }
-  }, 500);
+  if (req.isAuthenticated()) {
+    return next();
+  } else {
+    res.redirect('/signin');
+  }
 }
 
 /********************************************************************
@@ -108,7 +106,7 @@ appRouter.post('/signin', function(req, res, next) {
     } else {
       req.logIn(user, function(err) {
         if (err) { return next(err); }
-        res.status(400).json({ error: "Failed to sign in user" });
+        res.redirect("/");
       });
     }
 

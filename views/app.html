@@ -1,148 +1,165 @@
-<!doctype html>
-<html class="no-js" lang="en">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  <title>Lumbr Dashboard</title>
-  <meta name="description" content="The simplest cloud logging and alerting">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
-    crossorigin="anonymous">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="css/shards.min.css?v=2.0.1">
-  <link rel="stylesheet" href="css/shards-demo.min.css?v=2.0.1">
-</head>
+    <!-- CSS Dependencies -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/shards.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  </head>
 
-<body style="height: 100vh">
-  <!-- Navigation -->
-  <nav class="navbar navbar-expand-lg" style="flex-shrink: 0; border-bottom: 1px solid #dddddd; height: 50px;">
-    <img src="images/demo/shards-logo-black.svg" alt="Example Navbar 1" class="mr-2" height="30">
-    <a class="navbar-brand" href="#">Lumbr</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown-7" aria-controls="navbarNavDropdown-7"
-      aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNavDropdown-7">
-    
-      <ul class="navbar-nav mr-auto">
-      </ul>
+<body style="height: 100vh; width: 100vw">
+  <!-- Start App -->
+  <div class="row h-100 w-100 m-0" id="app">
 
-      <ul class="navbar-nav">
-        <li class="nav-item">
-            <a href="/signout">
-              <button class="btn btn-outline-primary my-2 my-sm-0" type="buton">Sign out →</button>
+    <!-- Sidebar -->
+    <div class="col h-100 p-0" style="background-color: #031b4d; -ms-flex: 0 0 200px; flex: 0 0 200px;">
+       <!-- Really useful bootstrap flexbox for centering something -->
+       <!-- Logo and name -->
+      <div class="d-flex flex-row justify-content-center align-items-center" style="height: 60px">
+        <img src="images/demo/shards-logo-black.svg" alt="Example Navbar 1" class="mr-2" height="25">
+        <a class="navbar-brand text-light" href="/">SwiftPager</a>
+      </div>
+
+      <div class="pt-4">
+        <ul class="nav flex-column">
+          <li class="nav-item" style="background-color: #010f2c">
+            <a class="nav-link text-light py-3 px-4" href="/dashboard">Dashboard</a>
+          </li>
+          <li class="nav-item side-nav-item">
+            <a class="nav-link text-light py-3 px-4" href="/services">Services</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link py-3 px-4 disabled" href="#">Logs</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link py-3 px-4 disabled" href="#">Team</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <!-- End Sidebar -->
+
+    <!-- Right Pane-->
+    <div class="col w-100 p-0">
+      <!-- Top Navigation -->
+      <nav class="container-fluid navbar navbar-expand-lg navbar-light bg-light" 
+          style="background:none !important; box-shadow: 0 2px 1px -1px rgba(0,0,0,0.1); max-height: 60px">
+        <div class="w-100 d-flex justify-content-end">
+          <div class="dropdown show">
+            <a class="dropdown-toggle" style="text-decoration: none" href="https://example.com" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <img src="images/app/user-icon.png" style="height: 39px; width: 39px;"/>
             </a>
-        </li>
-      </ul>
-    </div>
-  </nav>
-
-  <div class="container">
-    <!--Project info -->
-    <div class="mt-4">
-      <h3>Default workspace</h3>
-      <p style="overflow-wrap: break-word;" data-toggle="tooltip" data-placement="top" title="Copy this API key to use in your app. Remember to keep this API key safe!">
-        Api Key: 
-      </p>
-    </div>
-    <!--End project info -->
           
-    <hr class="my-4" />
-
-    <div class="row mt-4">
-      <!-- Side Nav -->
-      <div class="col-md-2">
-        <div class="nav flex-column nav-pills">
-          <a href="#" class="nav-item nav-link active">Services</a>
-          <a href="#" class="nav-item nav-link disabled">Logs</a>
-          <a href="#" class="nav-item nav-link disabled">Team management</a> 
-        </div>
-      </div>
-      <!-- End Side Nav -->
-
-      <!-- Main Area -->
-      <div class="col-md-10">
-        <div class="container">
-
-          <div style="border: 1px solid #dddddd; border-radius: 5px; padding: 30px; margin: 10px">
-            <h4>Email</h4>
-            <hr />
-            <div class="row">
-              <div class="col-md-4">Linked email</div>
-              <div class="col-md-8">
-                <p class="text-muted"></p>
-              </div>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuLink" style="right: 0; left: auto;">
+              <a class="dropdown-item" href="/account">Account</a>
+              <a class="dropdown-item" href="/signout">Signout</a>
             </div>
-            <div class="row">
-              <div class="col-md-4">Activated</div>
-              <div class="col-md-8">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" value="" id="defaultCheck1" />
-                </div>
-              </div>
+          </div>
+        </div>
+      </nav>
+    <!-- End Top Navigation -->
+
+      <!-- Main body -->
+      <div class="container p-5">
+
+        <div>
+          <h3>Default workspace</h3>
+          <p style="overflow-wrap: break-word;" data-toggle="tooltip" data-placement="top" title="Copy this API key to use in your app. Remember to keep this API key safe!">
+            Api Key: {{ info }}
+          </p>
+        </div>
+
+
+        <!-- Start Accordion -->
+        <div class="accordion list-group">
+
+          <!-- Start Email Tab -->
+          <div class="list-group-item"  style="background-color: #fafafa; cursor: pointer;" data-toggle="collapse" data-target="#email-tab" aria-expanded="true" aria-controls="email-tab">
+            <i class="fa fa-angle-down"></i> Email
+            <div onClick="stopPropogation(event)" class="custom-control custom-toggle float-right">
+              <input type="checkbox" id="email-switch" name="email-switch" class="custom-control-input" checked>
+              <label class="custom-control-label" for="email-switch"></label>
             </div>
           </div>
 
-          <div style="border: 1px solid #dddddd; border-radius: 5px; padding: 30px; margin: 10px">
-            <h4>Telegram</h5>
-            <hr />
-            <div class="row">
-              <div class="col-md-4">Linked Telegram account</div>
-              <div class="col-md-8">
-                <p class="text-muted"></p>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-4">Activated</div>
-              <div class="col-md-8">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" value="" id="defaultCheck1" />
+          <div id="email-tab" class="collapse show" aria-labelledby="email-tab" data-parent="#accordion" style="border-left: 1px solid rgb(226, 226, 226); border-right: 1px solid rgb(226, 226, 226)">
+            <div class="card-body">
+              <div class="row">
+                <div class="col-9">
+                  Linked email address
+                </div>
+                <div class="col-3">
+                  test
                 </div>
               </div>
+              <hr />
+              <a href="#">help</a>   
             </div>
-            <hr />
-            <a href="javascript:void(0)" data-toggle="modal" data-target="#exampleModalCenter">How to link a Telegram account?</a>
-            <!--Start Telegram modal-->
-            <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-              <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLongTitle">Linking Lumbr with your Telegram account</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
-                  <div class="modal-body">
-                    <ol>
-                      <li>Search for @LumbrBot on Telegram</li>
-                      <li>Click on 'start'</li>
-                      <li>Simply type in the email address that you used (MIGHT have to change to some API key thingy because the same email address can use for different projects)</li>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!--End Telegram modal-->
+          </div>
+          <!-- End Email Tab -->
+
+          <!-- Start Telegram Tab -->
+          <div class="list-group-item" style="background-color: #fafafa; cursor: pointer;" data-toggle="collapse" data-target="#telegram-tab" aria-expanded="true" aria-controls="telegram-tab">
+            <i class="fa fa-angle-down"></i> Telegram
+            <div onClick="stopPropogation(event)" class="custom-control custom-toggle float-right">
+              <input type="checkbox" id="telegram-switch" name="telegram-switch" class="custom-control-input" checked>
+              <label class="custom-control-label" for="telegram-switch"></label>
+            </div>       
           </div>
 
+          <div id="telegram-tab" class="collapse show" aria-labelledby="telegram-tab" data-parent="#accordion" style="border-left: 1px solid rgb(226, 226, 226); border-right: 1px solid rgb(226, 226, 226); border-bottom: 1px solid rgb(226, 226, 226)">
+            <div class="card-body">
+              <div class="row">
+                <div class="col-9">
+                  Telegram username
+                </div>
+                <div class="col-3">
+                  test
+                </div>
+              </div>
+              <hr />
+              <a href="#">How to link to my Telegram account?</a>       
+            </div>
+          </div>
+          <!-- End Telegram Tab -->
+
         </div>
+        <!-- End Accordion -->
+
       </div>
-      <!-- End Main Area -->
+      <!-- End Main Body -->
+
+      </div>
+      <!-- End Right Pane -->
+
     </div>
-  </div>
+    <!-- End App-->
 
-
-  <!-- JavaScript -->
-  <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-    crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4"
-    crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-    crossorigin="anonymous"></script>
-  <script src="js/shards.min.js"></script>
-  <script src="js/demo.min.js"></script>
-
-</body>
-
+  </body>
 </html>
+
+
+
+<style>
+.side-nav-item :hover {
+  background-color: #010f2c;
+}
+
+</style>
+
+<!-- Optional JavaScript -->
+<!-- JavaScript Dependencies: jQuery, Popper.js, Bootstrap JS, Shards JS -->
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="js/shards.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+<script>
+function stopPropogation(e) {
+  e.stopPropagation();
+}
+</script>
